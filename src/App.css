@@ -1,38 +1,54 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  height: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  align-items: center;
+}
+
+.player-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.previous-button, .next-button, .profile-button {
+  position: absolute;
+  bottom: 20px; /* Adjust this value as needed */
+  padding: 10px 20px;
+  font-size: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
   color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 1; /* Ensure buttons are above the video */
+}
+/*
+.previous-button {
+  left: 20px; /* Position previous button
+}
+*/
+
+.next-button {
+  left: 120px; /* Position next button */
 }
 
-.App-link {
-  color: #61dafb;
+.profile-button {
+  left: 220px; /* Position profile button */
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+.previous-button:hover, .next-button:hover, .profile-button:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+@media (max-width: 600px) {
+  .previous-button, .next-button, .profile-button {
+    font-size: 14px; /* Adjust font size for smaller screens */
+    padding: 8px 16px; /* Adjust padding for smaller screens */
   }
 }
