@@ -35,11 +35,11 @@ html, body, #root {
 */
 
 .next-button {
-  right: 120px; /* Position next button */
+  right: 100px; /* Position next button */
 }
 
 .profile-button {
-  right: 220px; /* Position profile button */
+  right: 200px; /* Position profile button */
 }
 
 .previous-button:hover, .next-button:hover, .profile-button:hover {
