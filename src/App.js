@@ -83,7 +83,7 @@ function App() {
 
       // Move to the next profile file
       setProfileIndex(prevIndex => {
-        const nextIndex = (prevIndex + 1) % 5; // Limit profile index to 1-4
+        const nextIndex = (prevIndex + 1) % 6; // Limit profile index to 1-4
         return nextIndex === 0 ? 1 : nextIndex; // Skip index 0 and reset to 1
       });
 
