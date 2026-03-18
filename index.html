@@ -68,13 +68,10 @@ button{
 </div>
 
 <script>
-
 /* ================= API KEY ================= */
 let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
 const apiInput = document.getElementById("apiKeyInput");
-
 if(GEMINI_KEY) apiInput.value = GEMINI_KEY;
-
 document.getElementById("saveKeyBtn").onclick = () => {
   const key = apiInput.value.trim();
   if(!key) return alert("Enter API key");
@@ -85,11 +82,8 @@ document.getElementById("saveKeyBtn").onclick = () => {
 
 /* ================= WAKE LOCK ================= */
 let wakeLock=null;
-
 async function enableWakeLock(){
-  try{
-    wakeLock = await navigator.wakeLock.request('screen');
-  }catch(e){}
+  try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
 }
 
 /* ================= APP ================= */
@@ -115,11 +109,7 @@ function togglePlay(){
     startPlayback()
   }
 }
-
-function stopPlayback(){
-  playing=false
-  speechSynthesis.cancel()
-}
+function stopPlayback(){ playing=false; speechSynthesis.cancel(); }
 
 /* ================= FILE ================= */
 async function loadFile(e){
@@ -133,12 +123,7 @@ function processSavedText(text){
   const cleanText = text.replace(/\r\n|\r/g, "\n")
   const noTimestamps = cleanText.replace(/\d{2}:\d{2}:\d{2},\d{3} --> .*?\n/g, "")
   const noIndexes = noTimestamps.replace(/^\d+\n/gm, "")
-
-  words = noIndexes
-    .replace(/\n+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .split(' ')
+  words = noIndexes.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().split(' ')
 
   chunks=[]
   for(let i=0;i<words.length;i+=100){
@@ -146,7 +131,6 @@ function processSavedText(text){
   }
 
   currentChunk = Number(localStorage.getItem("last_chunk")) || 0
-
   renderChunks()
   processChunk()
 }
@@ -164,7 +148,6 @@ window.onload = () => {
 function renderChunks(){
   const c=document.getElementById("chunkButtons")
   c.innerHTML=""
-
   chunks.forEach((_,i)=>{
     const b=document.createElement("button")
     b.textContent=i+1
@@ -173,7 +156,6 @@ function renderChunks(){
     c.appendChild(b)
   })
 }
-
 function jumpChunk(i){
   if(i<0||i>=chunks.length) return
   stopPlayback()
@@ -185,11 +167,9 @@ function jumpChunk(i){
 
 /* ================= AI ================= */
 async function processChunk(){
-
   if(!GEMINI_KEY) return alert("Enter API key first")
   if(!chunks[currentChunk]) return
 
-  // FIXED: Strong instructions to split sentences properly
   const prompt=`
 You are cleaning Hindi subtitles.
 
@@ -221,20 +201,16 @@ ${chunks[currentChunk]}
         body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
       }
     )
-
     const data=await res.json()
     let raw=data.candidates[0].content.parts[0].text
     raw=raw.replace(/```json|```/g,'')
     raw=raw.substring(raw.indexOf("["),raw.lastIndexOf("]")+1)
     sentences=JSON.parse(raw)
-
     if(!Array.isArray(sentences) || sentences.length < 5){
       console.log("Retrying - bad split")
       return processChunk();
     }
-
     startPlayback()
-
   }catch(e){
     console.log("Error fetching AI, retrying...", e)
     processChunk()
@@ -243,7 +219,6 @@ ${chunks[currentChunk]}
 
 /* ================= PLAY ================= */
 async function startPlayback(){
-
   if(!sentences.length) return
   stopPlayback()
   playing=true
@@ -257,33 +232,30 @@ async function startPlayback(){
   }
 
   localStorage.setItem("last_sentence",0)
-
   currentChunk++
   renderChunks()
-
-  if(currentChunk<chunks.length){
-    processChunk()
-  }else{
-    playing=false
-    toggleBtn.textContent="▶ Play"
-  }
+  if(currentChunk<chunks.length) processChunk()
+  else { playing=false; toggleBtn.textContent="▶ Play" }
 }
 
-/* Show */
+/* Show sentence with delays */
 async function showSentence(s,index){
-
   localStorage.setItem("last_chunk", currentChunk)
   localStorage.setItem("last_sentence", index)
 
+  // Show Hindi
   await fade(hindiBox,s.hi)
   await speak(s.hi,"hi-IN")
 
-  await sleep(3000)
+  // 6s delay after Hindi
+  await sleep(6000)
 
+  // Show English
   await fade(englishBox,s.en)
   await speak(s.en,"en-US")
 
-  await sleep(800)
+  // Pause 2.5s after English before next Hindi
+  await sleep(2500)
 }
 
 /* Helpers */
@@ -297,7 +269,6 @@ function fade(el,text){
     },200)
   })
 }
-
 function speak(text,lang){
   return new Promise(r=>{
     const u=new SpeechSynthesisUtterance(text)
@@ -306,12 +277,8 @@ function speak(text,lang){
     speechSynthesis.speak(u)
   })
 }
-
-function sleep(ms){
-  return new Promise(r=>setTimeout(r,ms))
-}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)) }
 
 </script>
-
 </body>
 </html>
