@@ -130,7 +130,6 @@ async function loadFile(e){
 }
 
 function processSavedText(text){
-
   const cleanText = text.replace(/\r\n|\r/g, "\n")
   const noTimestamps = cleanText.replace(/\d{2}:\d{2}:\d{2},\d{3} --> .*?\n/g, "")
   const noIndexes = noTimestamps.replace(/^\d+\n/gm, "")
@@ -190,7 +189,28 @@ async function processChunk(){
   if(!GEMINI_KEY) return alert("Enter API key first")
   if(!chunks[currentChunk]) return
 
-  const prompt=`Return JSON [{"hi":"","en":""}] TEXT: ${chunks[currentChunk]}`
+  // FIXED: Strong instructions to split sentences properly
+  const prompt=`
+You are cleaning Hindi subtitles.
+
+STRICT RULES:
+1. Split into 6-10 SHORT sentences
+2. Each sentence must be 6-12 words ONLY
+3. Do NOT combine everything into one paragraph
+4. Keep sentences natural and conversational
+5. Each Hindi sentence MUST have matching English translation
+6. Do NOT skip any content
+7. Output MUST be an ARRAY of objects
+
+Return ONLY JSON like:
+[
+  {"hi":"...","en":"..."},
+  {"hi":"...","en":"..."}
+]
+
+TEXT:
+${chunks[currentChunk]}
+`
 
   try{
     const res=await fetch(
@@ -204,14 +224,19 @@ async function processChunk(){
 
     const data=await res.json()
     let raw=data.candidates[0].content.parts[0].text
-
     raw=raw.replace(/```json|```/g,'')
     raw=raw.substring(raw.indexOf("["),raw.lastIndexOf("]")+1)
-
     sentences=JSON.parse(raw)
+
+    if(!Array.isArray(sentences) || sentences.length < 5){
+      console.log("Retrying - bad split")
+      return processChunk();
+    }
+
     startPlayback()
 
   }catch(e){
+    console.log("Error fetching AI, retrying...", e)
     processChunk()
   }
 }
@@ -220,7 +245,6 @@ async function processChunk(){
 async function startPlayback(){
 
   if(!sentences.length) return
-
   stopPlayback()
   playing=true
   await enableWakeLock()
