@@ -17,7 +17,7 @@ body{
   padding:12px;
 }
 
-/* API key box */
+/* API */
 #apiKeyInput{
   width:100%;
   padding:14px;
@@ -31,7 +31,7 @@ body{
   margin-bottom:12px;
 }
 
-/* File input */
+/* File */
 input[type=file]{
   width:100%;
   padding:14px;
@@ -57,7 +57,7 @@ button{
   color:#fff;
 }
 
-/* Chunk scroll */
+/* Chunk buttons */
 #chunkButtons{
   display:flex;
   overflow-x:auto;
@@ -108,7 +108,7 @@ button{
 
 <div class="container">
 
-<!-- ✅ API KEY INPUT -->
+<!-- API KEY -->
 <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key">
 <button id="saveKeyBtn">💾 Save API Key</button>
 
@@ -137,12 +137,10 @@ let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
 const apiInput = document.getElementById("apiKeyInput");
 const saveBtn = document.getElementById("saveKeyBtn");
 
-// Load saved key
 if(GEMINI_KEY){
   apiInput.value = GEMINI_KEY;
 }
 
-// Save key
 saveBtn.onclick = () => {
   const key = apiInput.value.trim();
 
@@ -158,7 +156,7 @@ saveBtn.onclick = () => {
 };
 
 
-/* ================= APP LOGIC ================= */
+/* ================= APP ================= */
 let words=[],chunks=[],currentChunk=0
 let sentences=[],playing=false
 
@@ -187,17 +185,29 @@ function stopPlayback(){
   speechSynthesis.cancel()
 }
 
-/* Load file */
+/* ================= LOAD FILE (FIXED) ================= */
 async function loadFile(e){
   stopPlayback()
 
-  const text=await e.target.files[0].text()
+  const text = await e.target.files[0].text()
 
-  words=text.replace(/\d+\n/g,'')
-            .replace(/\d{2}:\d{2}:\d{2},\d{3} --> .*?\n/g,'')
-            .replace(/\n/g,' ')
-            .split(/\s+/)
+  // 🔥 FIX: normalize all line endings
+  const cleanText = text.replace(/\r\n|\r/g, "\n")
 
+  // remove timestamps
+  const noTimestamps = cleanText.replace(/\d{2}:\d{2}:\d{2},\d{3} --> .*?\n/g, "")
+
+  // remove numbering
+  const noIndexes = noTimestamps.replace(/^\d+\n/gm, "")
+
+  // final clean words
+  words = noIndexes
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+
+  // chunking
   chunks=[]
   for(let i=0;i<words.length;i+=100){
     chunks.push(words.slice(i,i+100).join(" "))
@@ -226,7 +236,7 @@ function renderChunks(){
   })
 }
 
-/* Jump chunk */
+/* Jump */
 function jumpChunk(i){
   if(i<0||i>=chunks.length) return
 
@@ -238,7 +248,7 @@ function jumpChunk(i){
   processChunk()
 }
 
-/* Process chunk */
+/* ================= PROCESS ================= */
 async function processChunk(){
 
   if(!GEMINI_KEY){
@@ -296,7 +306,7 @@ ${chunks[currentChunk]}
   }
 }
 
-/* Playback */
+/* ================= PLAYBACK ================= */
 async function startPlayback(){
   if(!sentences.length) return
 
@@ -319,7 +329,7 @@ async function startPlayback(){
   }
 }
 
-/* Show sentence */
+/* Show */
 async function showSentence(s){
 
   await fade(hindiBox,s.hi)
@@ -359,6 +369,7 @@ function speak(text,lang){
 function sleep(ms){
   return new Promise(r=>setTimeout(r,ms))
 }
+
 </script>
 
 </body>
