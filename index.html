@@ -3,176 +3,246 @@
 <head>
 <meta charset="UTF-8">
 <title>AI Subtitle Trainer</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <style>
-body{margin:0;background:#000;font-family:Arial;color:#fff;}
+*{box-sizing:border-box;}
+body{margin:0;background:#111;font-family:Arial,sans-serif;color:#fff;padding-bottom:220px;}
 .container{padding:12px;}
+h3{margin:0 0 10px;font-size:16px;color:#aaa;}
 
-#apiKeyInput, input[type=file]{
-  width:100%;padding:14px;font-size:16px;border-radius:10px;margin-bottom:8px;
+input[type=password]{
+  width:100%;padding:14px;font-size:16px;border-radius:10px;
+  margin-bottom:8px;border:1px solid #444;background:#222;color:#fff;
+  display:block;
 }
+
+.file-btn{
+  width:100%;padding:14px;font-size:16px;border-radius:10px;
+  background:#222;color:#ccc;border:2px dashed #555;margin-bottom:8px;
+  cursor:pointer;text-align:center;display:block;
+}
+input[type=file]{display:none;}
 
 button{
-  width:100%;
-  padding:14px;
-  font-size:16px;
-  border:none;
-  border-radius:10px;
-  background:#e50914;
-  color:#fff;
-  margin-bottom:8px;
+  width:100%;padding:14px;font-size:16px;border:none;border-radius:10px;
+  background:#e50914;color:#fff;margin-bottom:8px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
+button:active{opacity:0.8;}
 
-.controls{display:flex;gap:8px;}
-.controls button{flex:1;}
+.controls{display:flex;gap:8px;margin-bottom:8px;}
+.controls button{flex:1;margin-bottom:0;}
 
 #chunkButtons{
-  display:flex;overflow-x:auto;gap:8px;padding:10px 0;
+  display:flex;overflow-x:auto;gap:8px;padding:8px 0;
+  scrollbar-width:none;
 }
-#chunkButtons button{flex:0 0 auto;min-width:60px;background:#333;}
-.activeChunk{background:#00aaff !important;}
+#chunkButtons::-webkit-scrollbar{display:none;}
+#chunkButtons button{
+  flex:0 0 auto;min-width:52px;padding:10px 6px;
+  font-size:14px;background:#333;margin-bottom:0;border-radius:8px;
+}
+.activeChunk{background:#0077cc !important;}
 
-.subtitleBox{
-  position:fixed;bottom:12%;left:0;right:0;text-align:center;padding:0 12px;
+#status{
+  text-align:center;font-size:13px;color:#888;padding:6px 0;min-height:22px;
 }
-.subtitle{opacity:0;transition:0.5s;}
-.show{opacity:1;}
-#hindi{font-size:24px;margin-bottom:8px;}
-#english{font-size:18px;color:#ccc;}
+
+/* Subtitle area — fixed at bottom */
+.subtitleBox{
+  position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(0,0,0,0.97) 30%);
+  padding:28px 16px 24px;text-align:center;
+  pointer-events:none;
+  min-height:160px;
+  display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+}
+.subtitle{
+  opacity:0;transition:opacity 0.4s ease;
+  will-change:opacity;
+  max-width:600px;
+}
+.subtitle.show{opacity:1;}
+#hindi{font-size:26px;font-weight:bold;margin-bottom:10px;line-height:1.4;color:#fff;}
+#english{font-size:18px;color:#ddd;line-height:1.4;}
 </style>
 </head>
-
 <body>
 
 <div class="container">
 
-<input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key">
-<button id="saveKeyBtn">💾 Save API Key</button>
+  <h3>🔑 Gemini API Key</h3>
+  <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key">
+  <button id="saveKeyBtn">💾 Save API Key</button>
 
-<input type="file" id="upload" accept=".srt">
+  <h3>📂 SRT File</h3>
+  <label class="file-btn" id="fileLabel" for="upload">📄 Choose SRT File</label>
+  <input type="file" id="upload" accept=".srt">
 
-<div class="controls">
-<button id="toggle">⏸ Pause</button>
-<button id="prev">◀</button>
-<button id="next">▶</button>
-</div>
+  <div class="controls">
+    <button id="toggle">▶ Play</button>
+    <button id="prev">◀ Prev</button>
+    <button id="next">Next ▶</button>
+  </div>
 
-<div id="chunkButtons"></div>
+  <div id="status">Waiting...</div>
+  <div id="chunkButtons"></div>
 
 </div>
 
 <div class="subtitleBox">
-<div id="hindi" class="subtitle"></div>
-<div id="english" class="subtitle"></div>
+  <div id="hindi" class="subtitle"></div>
+  <div id="english" class="subtitle"></div>
 </div>
 
 <script>
-/* ================= API KEY ================= */
+/* =========== API KEY =========== */
 let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
 const apiInput = document.getElementById("apiKeyInput");
-if(GEMINI_KEY) apiInput.value = GEMINI_KEY;
+if (GEMINI_KEY) apiInput.value = GEMINI_KEY;
+
 document.getElementById("saveKeyBtn").onclick = () => {
-  const key = apiInput.value.trim();
-  if(!key) return alert("Enter API key");
-  localStorage.setItem("gemini_key", key);
-  GEMINI_KEY = key;
-  alert("Saved ✅");
+  const k = apiInput.value.trim();
+  if (!k) return alert("Enter API key first");
+  localStorage.setItem("gemini_key", k);
+  GEMINI_KEY = k;
+  setStatus("API key saved ✅");
 };
 
-/* ================= WAKE LOCK ================= */
-let wakeLock=null;
-async function enableWakeLock(){
-  try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+/* =========== STATUS =========== */
+function setStatus(msg) {
+  document.getElementById("status").textContent = msg;
 }
 
-/* ================= APP ================= */
-let words=[],chunks=[],currentChunk=0
-let sentences=[],playing=false
-
-const hindiBox=document.getElementById("hindi")
-const englishBox=document.getElementById("english")
-const toggleBtn=document.getElementById("toggle")
-
-document.getElementById("upload").onchange=loadFile
-toggleBtn.onclick=togglePlay
-document.getElementById("prev").onclick=()=>jumpChunk(currentChunk-1)
-document.getElementById("next").onclick=()=>jumpChunk(currentChunk+1)
-
-/* Toggle */
-function togglePlay(){
-  if(playing){
-    stopPlayback()
-    toggleBtn.textContent="▶ Play"
-  }else{
-    toggleBtn.textContent="⏸ Pause"
-    startPlayback()
-  }
+/* =========== WAKE LOCK =========== */
+let wakeLock = null;
+async function enableWakeLock() {
+  try {
+    if (wakeLock && wakeLock.released === false) return;
+    wakeLock = await navigator.wakeLock.request('screen');
+  } catch (e) { console.warn("WakeLock failed:", e); }
 }
-function stopPlayback(){ playing=false; speechSynthesis.cancel(); }
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && playing) enableWakeLock();
+});
 
-/* ================= FILE ================= */
-async function loadFile(e){
-  stopPlayback()
-  const text = await e.target.files[0].text()
-  localStorage.setItem("srt_data", text)
-  processSavedText(text)
-}
+/* =========== STATE =========== */
+let words = [], chunks = [], currentChunk = 0;
+let sentences = [], playing = false;
+let speakAborted = false;
 
-function processSavedText(text){
-  const cleanText = text.replace(/\r\n|\r/g, "\n")
-  const noTimestamps = cleanText.replace(/\d{2}:\d{2}:\d{2},\d{3} --> .*?\n/g, "")
-  const noIndexes = noTimestamps.replace(/^\d+\n/gm, "")
-  words = noIndexes.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().split(' ')
+const hindiBox = document.getElementById("hindi");
+const englishBox = document.getElementById("english");
+const toggleBtn = document.getElementById("toggle");
 
-  chunks=[]
-  for(let i=0;i<words.length;i+=100){
-    chunks.push(words.slice(i,i+100).join(" "))
-  }
+/* =========== FILE =========== */
+document.getElementById("upload").onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById("fileLabel").textContent = "📄 " + file.name;
+  const text = await file.text();
+  localStorage.setItem("srt_data", text);
+  stopPlayback();
+  processSavedText(text);
+};
 
-  currentChunk = Number(localStorage.getItem("last_chunk")) || 0
-  renderChunks()
-  processChunk()
+function parseSRT(text) {
+  const clean = text.replace(/\r\n|\r/g, "\n");
+  const noTS = clean.replace(/\d{2}:\d{2}:\d{2},\d{3}\s-->\s.*?\n/g, "");
+  const noIdx = noTS.replace(/^\d+\s*\n/gm, "");
+  return noIdx.replace(/\n+/g, " ").replace(/\s+/g, " ").trim().split(" ");
 }
 
-/* Auto load */
+function processSavedText(text) {
+  words = parseSRT(text);
+  chunks = [];
+  for (let i = 0; i < words.length; i += 100)
+    chunks.push(words.slice(i, i + 100).join(" "));
+  currentChunk = Number(localStorage.getItem("last_chunk")) || 0;
+  if (currentChunk >= chunks.length) currentChunk = 0;
+  renderChunks();
+  setStatus("File loaded — " + chunks.length + " chunks. Press Play.");
+}
+
 window.onload = () => {
-  if(localStorage.getItem("srt_data")){
-    if(confirm("Load last SRT file?")){
-      processSavedText(localStorage.getItem("srt_data"))
-    }
+  const saved = localStorage.getItem("srt_data");
+  if (saved && confirm("Load last SRT file?"))
+    processSavedText(saved);
+  preloadVoices(); // prime voice list on load
+};
+
+/* =========== CHUNKS =========== */
+function renderChunks() {
+  const c = document.getElementById("chunkButtons");
+  c.innerHTML = "";
+  chunks.forEach((_, i) => {
+    const b = document.createElement("button");
+    b.textContent = i + 1;
+    b.onclick = () => jumpChunk(i);
+    if (i === currentChunk) b.classList.add("activeChunk");
+    c.appendChild(b);
+  });
+  // scroll active button into view
+  const active = c.querySelector(".activeChunk");
+  if (active) active.scrollIntoView({ inline: "center", block: "nearest" });
+}
+
+function jumpChunk(i) {
+  if (i < 0 || i >= chunks.length) return;
+  stopPlayback();
+  currentChunk = i;
+  localStorage.setItem("last_chunk", i);
+  localStorage.setItem("last_sentence", 0);
+  renderChunks();
+  toggleBtn.textContent = "⏸ Pause";
+  processChunk();
+}
+
+/* =========== CONTROLS =========== */
+toggleBtn.onclick = () => {
+  if (playing) {
+    stopPlayback();
+    toggleBtn.textContent = "▶ Play";
+  } else {
+    toggleBtn.textContent = "⏸ Pause";
+    if (sentences.length) startPlayback();
+    else processChunk();
   }
+};
+document.getElementById("prev").onclick = () => jumpChunk(currentChunk - 1);
+document.getElementById("next").onclick = () => jumpChunk(currentChunk + 1);
+
+function stopPlayback() {
+  playing = false;
+  speakAborted = true;
+  try { speechSynthesis.cancel(); } catch (e) {}
 }
 
-/* ================= CHUNKS ================= */
-function renderChunks(){
-  const c=document.getElementById("chunkButtons")
-  c.innerHTML=""
-  chunks.forEach((_,i)=>{
-    const b=document.createElement("button")
-    b.textContent=i+1
-    b.onclick=()=>jumpChunk(i)
-    if(i===currentChunk) b.classList.add("activeChunk")
-    c.appendChild(b)
-  })
+/* =========== VOICE HANDLING (Android Chrome fix) =========== */
+let voices = [];
+function preloadVoices() {
+  voices = speechSynthesis.getVoices();
 }
-function jumpChunk(i){
-  if(i<0||i>=chunks.length) return
-  stopPlayback()
-  currentChunk=i
-  renderChunks()
-  toggleBtn.textContent="⏸ Pause"
-  processChunk()
+speechSynthesis.onvoiceschanged = () => {
+  voices = speechSynthesis.getVoices();
+};
+
+function getBestVoice(lang) {
+  if (!voices.length) voices = speechSynthesis.getVoices();
+  // exact match first, then prefix match
+  return voices.find(v => v.lang === lang)
+      || voices.find(v => v.lang.startsWith(lang.split("-")[0]))
+      || null;
 }
 
-/* ================= AI ================= */
-async function processChunk(){
-  if(!GEMINI_KEY) return alert("Enter API key first")
-  if(!chunks[currentChunk]) return
+/* =========== AI =========== */
+async function processChunk() {
+  if (!GEMINI_KEY) { alert("Enter API key first"); return; }
+  if (!chunks[currentChunk]) return;
+  setStatus("⏳ AI processing chunk " + (currentChunk + 1) + "...");
 
-  const prompt=`
+  const prompt = `
 You are cleaning Hindi subtitles.
-
 STRICT RULES:
 1. Split into 6-10 SHORT sentences
 2. Each sentence must be 6-12 words ONLY
@@ -180,105 +250,156 @@ STRICT RULES:
 4. Keep sentences natural and conversational
 5. Each Hindi sentence MUST have matching English translation
 6. Do NOT skip any content
-7. Output MUST be an ARRAY of objects
+7. Output MUST be an ARRAY of objects — no markdown, no explanation
 
-Return ONLY JSON like:
-[
-  {"hi":"...","en":"..."},
-  {"hi":"...","en":"..."}
-]
+Return ONLY raw JSON like:
+[{"hi":"...","en":"..."},{"hi":"...","en":"..."}]
 
 TEXT:
 ${chunks[currentChunk]}
-`
+`;
 
-  try{
-    const res=await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key="+GEMINI_KEY,
-      {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
-      }
-    )
-    const data=await res.json()
-    let raw=data.candidates[0].content.parts[0].text
-    raw=raw.replace(/```json|```/g,'')
-    raw=raw.substring(raw.indexOf("["),raw.lastIndexOf("]")+1)
-    sentences=JSON.parse(raw)
-    if(!Array.isArray(sentences) || sentences.length < 5){
-      console.log("Retrying - bad split")
-      return processChunk();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + GEMINI_KEY,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        }
+      );
+      const data = await res.json();
+      if (!data.candidates) throw new Error("No candidates: " + JSON.stringify(data));
+      let raw = data.candidates[0].content.parts[0].text;
+      raw = raw.replace(/```json|```/g, "");
+      raw = raw.substring(raw.indexOf("["), raw.lastIndexOf("]") + 1);
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed) || parsed.length < 3) throw new Error("Bad split");
+      sentences = parsed;
+      setStatus("✅ Ready — " + sentences.length + " sentences");
+      startPlayback();
+      return;
+    } catch (e) {
+      console.warn("AI attempt " + (attempt + 1) + " failed:", e);
+      setStatus("⚠️ Retry " + (attempt + 1) + "/3...");
+      await sleep(1500);
     }
-    startPlayback()
-  }catch(e){
-    console.log("Error fetching AI, retrying...", e)
-    processChunk()
+  }
+  setStatus("❌ AI failed. Check API key / network.");
+}
+
+/* =========== PLAYBACK =========== */
+async function startPlayback() {
+  if (!sentences.length) return;
+  stopPlayback();
+  await sleep(100); // let cancel settle on Android
+  playing = true;
+  speakAborted = false;
+  await enableWakeLock();
+
+  const startIndex = Number(localStorage.getItem("last_sentence")) || 0;
+
+  for (let i = startIndex; i < sentences.length; i++) {
+    if (!playing) return;
+    await showSentence(sentences[i], i);
+    if (!playing) return;
+  }
+
+  // Chunk done
+  localStorage.setItem("last_sentence", 0);
+  currentChunk++;
+  localStorage.setItem("last_chunk", currentChunk);
+
+  if (currentChunk < chunks.length) {
+    renderChunks();
+    processChunk();
+  } else {
+    playing = false;
+    toggleBtn.textContent = "▶ Play";
+    setStatus("🎉 All done!");
   }
 }
 
-/* ================= PLAY ================= */
-async function startPlayback(){
-  if(!sentences.length) return
-  stopPlayback()
-  playing=true
-  await enableWakeLock()
-
-  let startIndex = Number(localStorage.getItem("last_sentence")) || 0;
-
-  for(let i=startIndex;i<sentences.length;i++){
-    if(!playing) return
-    await showSentence(sentences[i],i)
-  }
-
-  localStorage.setItem("last_sentence",0)
-  currentChunk++
-  renderChunks()
-  if(currentChunk<chunks.length) processChunk()
-  else { playing=false; toggleBtn.textContent="▶ Play" }
-}
-
-/* Show sentence with delays */
-async function showSentence(s,index){
-  localStorage.setItem("last_chunk", currentChunk)
-  localStorage.setItem("last_sentence", index)
+async function showSentence(s, index) {
+  localStorage.setItem("last_chunk", currentChunk);
+  localStorage.setItem("last_sentence", index);
 
   // Show Hindi
-  await fade(hindiBox,s.hi)
-  await speak(s.hi,"hi-IN")
+  await fade(hindiBox, s.hi);
+  if (!playing) return;
+  await speakText(s.hi, "hi-IN");
+  if (!playing) return;
 
-  // 6s delay after Hindi
-  await sleep(6000)
+  await sleep(6000);
+  if (!playing) return;
 
   // Show English
-  await fade(englishBox,s.en)
-  await speak(s.en,"en-US")
+  await fade(englishBox, s.en);
+  if (!playing) return;
+  await speakText(s.en, "en-US");
+  if (!playing) return;
 
-  // Pause 2.5s after English before next Hindi
-  await sleep(2500)
+  await sleep(2500);
 }
 
-/* Helpers */
-function fade(el,text){
-  return new Promise(r=>{
-    el.classList.remove("show")
-    setTimeout(()=>{
-      el.textContent=text
-      el.classList.add("show")
-      r()
-    },200)
-  })
-}
-function speak(text,lang){
-  return new Promise(r=>{
-    const u=new SpeechSynthesisUtterance(text)
-    u.lang=lang
-    u.onend=r
-    speechSynthesis.speak(u)
-  })
-}
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)) }
+/* =========== SPEECH (Android Chrome safe) =========== */
+function speakText(text, lang) {
+  return new Promise((resolve) => {
+    if (!playing) { resolve(); return; }
 
+    // Android Chrome fix: cancel + tiny delay before new utterance
+    speechSynthesis.cancel();
+
+    setTimeout(() => {
+      if (!playing) { resolve(); return; }
+
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = 0.9;
+
+      const voice = getBestVoice(lang);
+      if (voice) u.voice = voice;
+
+      let resolved = false;
+      const done = () => { if (!resolved) { resolved = true; resolve(); } };
+
+      u.onend = done;
+      u.onerror = (e) => {
+        // "interrupted" fires on Android when cancelled — treat as done
+        done();
+      };
+
+      // Android Chrome watchdog: speech sometimes stalls silently
+      // estimate max duration then force-resolve
+      const wordCount = text.split(" ").length;
+      const estMs = Math.max(wordCount * 600, 3000) + 3000;
+      const watchdog = setTimeout(() => {
+        console.warn("Speech watchdog fired");
+        speechSynthesis.cancel();
+        done();
+      }, estMs);
+
+      u.onend = () => { clearTimeout(watchdog); done(); };
+      u.onerror = () => { clearTimeout(watchdog); done(); };
+
+      speechSynthesis.speak(u);
+    }, 150); // 150ms gap — critical for Android Chrome
+  });
+}
+
+/* =========== HELPERS =========== */
+function fade(el, text) {
+  return new Promise(r => {
+    el.classList.remove("show");
+    setTimeout(() => {
+      el.textContent = text;
+      el.classList.add("show");
+      r();
+    }, 250);
+  });
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 </script>
 </body>
 </html>
