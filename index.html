@@ -6,101 +6,40 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
 <style>
-body{
-  margin:0;
-  background:#000;
-  font-family:Arial;
-  color:#fff;
-}
+body{margin:0;background:#000;font-family:Arial;color:#fff;}
+.container{padding:12px;}
 
-.container{
-  padding:12px;
-}
-
-/* API */
-#apiKeyInput{
-  width:100%;
-  padding:14px;
-  font-size:16px;
-  border-radius:10px;
-  margin-bottom:6px;
-}
-
-#saveKeyBtn{
-  width:100%;
-  margin-bottom:12px;
-}
-
-/* File */
-input[type=file]{
-  width:100%;
-  padding:14px;
-  font-size:16px;
-  border-radius:10px;
-  margin-bottom:10px;
-}
-
-/* Controls */
-.controls{
-  display:flex;
-  gap:8px;
-  margin-bottom:10px;
+#apiKeyInput, input[type=file]{
+  width:100%;padding:14px;font-size:16px;border-radius:10px;margin-bottom:8px;
 }
 
 button{
-  flex:1;
+  width:100%;
   padding:14px;
   font-size:16px;
   border:none;
   border-radius:10px;
   background:#e50914;
   color:#fff;
-}
-
-/* Chunk buttons */
-#chunkButtons{
-  display:flex;
-  overflow-x:auto;
-  gap:8px;
-  padding:10px 0;
-}
-
-#chunkButtons button{
-  flex:0 0 auto;
-  min-width:60px;
-  background:#333;
-}
-
-.activeChunk{
-  background:#00aaff !important;
-}
-
-/* Subtitles */
-.subtitleBox{
-  position:fixed;
-  bottom:12%;
-  left:0;
-  right:0;
-  text-align:center;
-  padding:0 12px;
-}
-
-.subtitle{
-  opacity:0;
-  transition:0.5s;
-}
-
-.show{opacity:1;}
-
-#hindi{
-  font-size:24px;
   margin-bottom:8px;
 }
 
-#english{
-  font-size:18px;
-  color:#ccc;
+.controls{display:flex;gap:8px;}
+.controls button{flex:1;}
+
+#chunkButtons{
+  display:flex;overflow-x:auto;gap:8px;padding:10px 0;
 }
+#chunkButtons button{flex:0 0 auto;min-width:60px;background:#333;}
+.activeChunk{background:#00aaff !important;}
+
+.subtitleBox{
+  position:fixed;bottom:12%;left:0;right:0;text-align:center;padding:0 12px;
+}
+.subtitle{opacity:0;transition:0.5s;}
+.show{opacity:1;}
+#hindi{font-size:24px;margin-bottom:8px;}
+#english{font-size:18px;color:#ccc;}
 </style>
 </head>
 
@@ -108,7 +47,6 @@ button{
 
 <div class="container">
 
-<!-- API KEY -->
 <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key">
 <button id="saveKeyBtn">💾 Save API Key</button>
 
@@ -133,28 +71,26 @@ button{
 
 /* ================= API KEY ================= */
 let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
-
 const apiInput = document.getElementById("apiKeyInput");
-const saveBtn = document.getElementById("saveKeyBtn");
 
-if(GEMINI_KEY){
-  apiInput.value = GEMINI_KEY;
-}
+if(GEMINI_KEY) apiInput.value = GEMINI_KEY;
 
-saveBtn.onclick = () => {
+document.getElementById("saveKeyBtn").onclick = () => {
   const key = apiInput.value.trim();
-
-  if(!key){
-    alert("Please enter API key");
-    return;
-  }
-
+  if(!key) return alert("Enter API key");
   localStorage.setItem("gemini_key", key);
   GEMINI_KEY = key;
-
-  alert("API Key Saved ✅");
+  alert("Saved ✅");
 };
 
+/* ================= WAKE LOCK ================= */
+let wakeLock=null;
+
+async function enableWakeLock(){
+  try{
+    wakeLock = await navigator.wakeLock.request('screen');
+  }catch(e){}
+}
 
 /* ================= APP ================= */
 let words=[],chunks=[],currentChunk=0
@@ -185,42 +121,47 @@ function stopPlayback(){
   speechSynthesis.cancel()
 }
 
-/* ================= LOAD FILE (FIXED) ================= */
+/* ================= FILE ================= */
 async function loadFile(e){
   stopPlayback()
-
   const text = await e.target.files[0].text()
+  localStorage.setItem("srt_data", text)
+  processSavedText(text)
+}
 
-  // 🔥 FIX: normalize all line endings
+function processSavedText(text){
+
   const cleanText = text.replace(/\r\n|\r/g, "\n")
-
-  // remove timestamps
   const noTimestamps = cleanText.replace(/\d{2}:\d{2}:\d{2},\d{3} --> .*?\n/g, "")
-
-  // remove numbering
   const noIndexes = noTimestamps.replace(/^\d+\n/gm, "")
 
-  // final clean words
   words = noIndexes
     .replace(/\n+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .split(' ')
 
-  // chunking
   chunks=[]
   for(let i=0;i<words.length;i+=100){
     chunks.push(words.slice(i,i+100).join(" "))
   }
 
-  currentChunk=0
-  renderChunks()
+  currentChunk = Number(localStorage.getItem("last_chunk")) || 0
 
-  toggleBtn.textContent="⏸ Pause"
+  renderChunks()
   processChunk()
 }
 
-/* Render chunks */
+/* Auto load */
+window.onload = () => {
+  if(localStorage.getItem("srt_data")){
+    if(confirm("Load last SRT file?")){
+      processSavedText(localStorage.getItem("srt_data"))
+    }
+  }
+}
+
+/* ================= CHUNKS ================= */
 function renderChunks(){
   const c=document.getElementById("chunkButtons")
   c.innerHTML=""
@@ -229,51 +170,27 @@ function renderChunks(){
     const b=document.createElement("button")
     b.textContent=i+1
     b.onclick=()=>jumpChunk(i)
-
     if(i===currentChunk) b.classList.add("activeChunk")
-
     c.appendChild(b)
   })
 }
 
-/* Jump */
 function jumpChunk(i){
   if(i<0||i>=chunks.length) return
-
   stopPlayback()
   currentChunk=i
   renderChunks()
-
   toggleBtn.textContent="⏸ Pause"
   processChunk()
 }
 
-/* ================= PROCESS ================= */
+/* ================= AI ================= */
 async function processChunk(){
 
-  if(!GEMINI_KEY){
-    alert("Please enter API key first");
-    return;
-  }
-
+  if(!GEMINI_KEY) return alert("Enter API key first")
   if(!chunks[currentChunk]) return
 
-  const prompt=`
-You are cleaning Hindi subtitles.
-
-STRICT RULES:
-1. Split into 6-10 sentences
-2. Each sentence must be 6-12 words
-3. Do NOT return one paragraph
-4. Use conversational Hindi
-5. Provide English translation
-
-Return JSON only:
-[{"hi":"","en":""}]
-
-TEXT:
-${chunks[currentChunk]}
-`
+  const prompt=`Return JSON [{"hi":"","en":""}] TEXT: ${chunks[currentChunk]}`
 
   try{
     const res=await fetch(
@@ -288,17 +205,10 @@ ${chunks[currentChunk]}
     const data=await res.json()
     let raw=data.candidates[0].content.parts[0].text
 
-    raw=raw.replace(/```json/g,'').replace(/```/g,'')
+    raw=raw.replace(/```json|```/g,'')
     raw=raw.substring(raw.indexOf("["),raw.lastIndexOf("]")+1)
 
-    let parsed=JSON.parse(raw)
-
-    if(!Array.isArray(parsed) || parsed.length<3){
-      return processChunk()
-    }
-
-    sentences=parsed
-
+    sentences=JSON.parse(raw)
     startPlayback()
 
   }catch(e){
@@ -306,17 +216,23 @@ ${chunks[currentChunk]}
   }
 }
 
-/* ================= PLAYBACK ================= */
+/* ================= PLAY ================= */
 async function startPlayback(){
+
   if(!sentences.length) return
 
   stopPlayback()
   playing=true
+  await enableWakeLock()
 
-  for(let s of sentences){
+  let startIndex = Number(localStorage.getItem("last_sentence")) || 0;
+
+  for(let i=startIndex;i<sentences.length;i++){
     if(!playing) return
-    await showSentence(s)
+    await showSentence(sentences[i],i)
   }
+
+  localStorage.setItem("last_sentence",0)
 
   currentChunk++
   renderChunks()
@@ -330,7 +246,10 @@ async function startPlayback(){
 }
 
 /* Show */
-async function showSentence(s){
+async function showSentence(s,index){
+
+  localStorage.setItem("last_chunk", currentChunk)
+  localStorage.setItem("last_sentence", index)
 
   await fade(hindiBox,s.hi)
   await speak(s.hi,"hi-IN")
@@ -338,13 +257,12 @@ async function showSentence(s){
   await sleep(3000)
 
   await fade(englishBox,s.en)
-  await sleep(500)
   await speak(s.en,"en-US")
 
   await sleep(800)
 }
 
-/* Fade */
+/* Helpers */
 function fade(el,text){
   return new Promise(r=>{
     el.classList.remove("show")
@@ -356,7 +274,6 @@ function fade(el,text){
   })
 }
 
-/* Speak */
 function speak(text,lang){
   return new Promise(r=>{
     const u=new SpeechSynthesisUtterance(text)
