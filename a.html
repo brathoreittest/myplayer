@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SubTrainer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Devanagari:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0f;
+  --surface:#13131a;
+  --surface2:#1c1c28;
+  --border:#2a2a3d;
+  --accent:#ff3c5f;
+  --accent2:#7c5cff;
+  --text:#f0f0f8;
+  --muted:#6b6b8a;
+  --radius:14px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  overflow-x:hidden;
+  overscroll-behavior:none;
+}
+
+/* ── HEADER ── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 16px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+  position:sticky;top:0;z-index:50;
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.status-pill{
+  font-size:11px;font-weight:600;letter-spacing:.4px;
+  padding:5px 11px;border-radius:20px;
+  background:var(--surface2);color:var(--muted);
+  border:1px solid var(--border);
+  max-width:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* ── SCROLL BODY ── */
+.scroll-body{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:14px 14px calc(240px + var(--safe-bottom));
+}
+
+/* ── CARD ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:12px;
+}
+.card-label{
+  font-size:10px;font-weight:600;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* ── INPUT ROW ── */
+.input-row{display:flex;gap:8px;align-items:center;}
+input[type=password]{
+  flex:1;padding:13px 14px;font-size:15px;
+  border:1px solid var(--border);border-radius:10px;
+  background:var(--surface2);color:var(--text);
+  font-family:inherit;outline:none;
+  -webkit-appearance:none;appearance:none;
+}
+input[type=password]:focus{border-color:var(--accent2);}
+
+.icon-btn{
+  width:50px;height:50px;border:none;border-radius:10px;
+  background:var(--accent2);color:#fff;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+}
+.icon-btn:active{opacity:.8;}
+
+/* ── FILE PICK ── */
+input[type=file]{display:none;}
+.file-pick{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 14px;border-radius:10px;
+  border:1.5px dashed var(--border);
+  background:var(--surface2);
+  cursor:pointer;
+  -webkit-user-select:none;user-select:none;
+}
+.file-pick:active{border-color:var(--accent);}
+.file-icon{font-size:26px;flex-shrink:0;}
+.file-text{flex:1;overflow:hidden;}
+.file-title{font-size:14px;font-weight:600;}
+.file-sub{font-size:12px;color:var(--muted);margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ── CHUNKS STRIP ── */
+.chunks-wrap{overflow:hidden;}
+.chunks-strip{
+  display:flex;gap:7px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  padding:2px 0 4px;scrollbar-width:none;
+}
+.chunks-strip::-webkit-scrollbar{display:none;}
+.c-btn{
+  flex:0 0 auto;min-width:46px;height:38px;
+  border:1px solid var(--border);border-radius:8px;
+  background:var(--surface2);color:var(--muted);
+  font-size:13px;font-weight:600;cursor:pointer;
+}
+.c-btn.done{background:#152015;border-color:#2a452a;color:#5a9a5a;}
+.c-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.c-btn:active{opacity:.7;}
+
+/* ── BOTTOM BAR ── */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  padding-bottom:var(--safe-bottom);
+}
+
+/* Progress */
+.progress-bar{height:3px;background:var(--surface2);}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .5s ease;width:0%;
+}
+
+/* Subtitle */
+.sub-area{
+  padding:14px 18px 10px;
+  min-height:106px;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  text-align:center;
+}
+.sub-hi{
+  font-family:'Noto Sans Devanagari',sans-serif;
+  font-size:23px;font-weight:600;line-height:1.5;
+  color:#fff;opacity:0;transition:opacity .35s ease;min-height:34px;
+}
+.sub-en{
+  font-size:15px;line-height:1.5;
+  color:#9090b8;margin-top:6px;
+  opacity:0;transition:opacity .35s ease;min-height:22px;
+}
+.sub-hi.show,.sub-en.show{opacity:1;}
+
+/* Controls */
+.ctrl-row{
+  display:flex;align-items:center;gap:9px;
+  padding:10px 14px 12px;
+}
+.nav-btn{
+  width:52px;height:52px;
+  border:1px solid var(--border);border-radius:13px;
+  background:var(--surface2);color:var(--text);
+  font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nav-btn:active{background:var(--border);}
+
+.play-btn{
+  flex:1;height:52px;border:none;border-radius:13px;
+  background:linear-gradient(135deg,var(--accent) 0%,#c0003a 100%);
+  color:#fff;font-family:'Bebas Neue',sans-serif;
+  font-size:23px;letter-spacing:2.5px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 22px rgba(255,60,95,.28);
+  transition:opacity .15s;
+}
+.play-btn:active{opacity:.82;}
+.play-btn.paused{
+  background:linear-gradient(135deg,var(--accent2) 0%,#4a2acc 100%);
+  box-shadow:0 4px 22px rgba(124,92,255,.28);
+}
+
+/* ── LOADING OVERLAY ── */
+.loading{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(10,10,15,.88);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.loading.show{display:flex;}
+.spinner{
+  width:46px;height:46px;border-radius:50%;
+  border:3px solid var(--border);border-top-color:var(--accent);
+  animation:spin .75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg{font-size:15px;color:var(--muted);letter-spacing:.3px;}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loadingText">Processing…</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">SubTrainer</div>
+  <div class="status-pill" id="statusPill">Ready</div>
+</div>
+
+<!-- SCROLLABLE AREA -->
+<div class="scroll-body">
+
+  <!-- API KEY -->
+  <div class="card">
+    <div class="card-label">Gemini API Key</div>
+    <div class="input-row">
+      <input type="password" id="apiKeyInput" placeholder="Paste your Gemini key…">
+      <button class="icon-btn" id="saveKeyBtn">💾</button>
+    </div>
+  </div>
+
+  <!-- FILE -->
+  <div class="card">
+    <div class="card-label">SRT File</div>
+    <label class="file-pick" for="upload">
+      <div class="file-icon">📄</div>
+      <div class="file-text">
+        <div class="file-title" id="fileTitle">Choose SRT file</div>
+        <div class="file-sub"  id="fileSub">Tap to browse</div>
+      </div>
+    </label>
+    <input type="file" id="upload" accept=".srt">
+  </div>
+
+  <!-- CHUNKS (hidden until file loaded) -->
+  <div class="card" id="chunkCard" style="display:none">
+    <div class="card-label">Chunks &mdash; <span id="chunkInfo"></span></div>
+    <div class="chunks-strip" id="chunkButtons"></div>
+  </div>
+
+</div><!-- /scroll-body -->
+
+<!-- FIXED BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="sub-area">
+    <div class="sub-hi" id="hindi"></div>
+    <div class="sub-en" id="english"></div>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="nav-btn" id="prev">◀</button>
+    <button class="play-btn" id="toggle">▶ &nbsp;PLAY</button>
+    <button class="nav-btn" id="next">▶▶</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════ STATE ═══════════════════════════════ */
+let GEMINI_KEY = localStorage.getItem("gemini_key")||"";
+let words=[],chunks=[],currentChunk=0;
+let sentences=[],playing=false,speakAborted=false;
+let voices=[];
+
+const apiInput    = document.getElementById("apiKeyInput");
+const hindiBox    = document.getElementById("hindi");
+const englishBox  = document.getElementById("english");
+const toggleBtn   = document.getElementById("toggle");
+const statusPill  = document.getElementById("statusPill");
+const loadingDiv  = document.getElementById("loading");
+const loadingTxt  = document.getElementById("loadingText");
+const progressFill= document.getElementById("progressFill");
+
+if(GEMINI_KEY) apiInput.value = GEMINI_KEY;
+
+/* ═══════════════════════════════ UTILS ═══════════════════════════════ */
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+function setStatus(msg){ statusPill.textContent = msg; }
+
+function showLoading(msg){
+  loadingTxt.textContent = msg;
+  loadingDiv.classList.add("show");
+}
+function hideLoading(){ loadingDiv.classList.remove("show"); }
+
+function setProgress(frac){
+  progressFill.style.width = Math.min(Math.max(frac,0),1)*100+"%";
+}
+
+function fade(el,text){
+  return new Promise(r=>{
+    el.classList.remove("show");
+    setTimeout(()=>{ el.textContent=text; el.classList.add("show"); r(); },260);
+  });
+}
+
+/* ═══════════════════════════════ API KEY ═════════════════════════════ */
+document.getElementById("saveKeyBtn").onclick = ()=>{
+  const k = apiInput.value.trim();
+  if(!k){ setStatus("Enter key!"); return; }
+  localStorage.setItem("gemini_key",k);
+  GEMINI_KEY = k;
+  setStatus("Key saved ✅");
+};
+
+/* ═══════════════════════════════ WAKE LOCK ═══════════════════════════ */
+let wakeLock=null;
+async function enableWakeLock(){
+  try{
+    if(wakeLock && !wakeLock.released) return;
+    wakeLock = await navigator.wakeLock.request('screen');
+  }catch(e){}
+}
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible" && playing) enableWakeLock();
+});
+
+/* ═══════════════════════════════ FILE ═══════════════════════════════ */
+function parseSRT(text){
+  const c = text.replace(/\r\n|\r/g,"\n");
+  const t = c.replace(/\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*.*?\n/g,"");
+  const i = t.replace(/^\d+\s*\n/gm,"");
+  return i.replace(/\n+/g," ").replace(/\s+/g," ").trim().split(" ");
+}
+
+function processSavedText(text){
+  words  = parseSRT(text);
+  chunks = [];
+  for(let i=0;i<words.length;i+=100)
+    chunks.push(words.slice(i,i+100).join(" "));
+  currentChunk = Number(localStorage.getItem("last_chunk"))||0;
+  if(currentChunk>=chunks.length) currentChunk=0;
+  document.getElementById("chunkCard").style.display="block";
+  document.getElementById("chunkInfo").textContent = chunks.length+" chunks";
+  renderChunks();
+  setStatus("Loaded · "+chunks.length+" chunks");
+}
+
+document.getElementById("upload").onchange = async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  document.getElementById("fileTitle").textContent = file.name;
+  document.getElementById("fileSub").textContent   = (file.size/1024).toFixed(1)+" KB";
+  localStorage.setItem("srt_name",file.name);
+  const text = await file.text();
+  localStorage.setItem("srt_data",text);
+  stopPlayback();
+  processSavedText(text);
+};
+
+window.onload = ()=>{
+  preloadVoices();
+  const saved = localStorage.getItem("srt_data");
+  if(saved && confirm("Resume last session?")){
+    const name = localStorage.getItem("srt_name")||"Last file";
+    document.getElementById("fileTitle").textContent = name;
+    document.getElementById("fileSub").textContent   = "Restored";
+    processSavedText(saved);
+  }
+};
+
+/* ═══════════════════════════════ CHUNKS ═════════════════════════════ */
+function renderChunks(){
+  const c = document.getElementById("chunkButtons");
+  c.innerHTML="";
+  chunks.forEach((_,i)=>{
+    const b = document.createElement("button");
+    b.className = "c-btn"+(i===currentChunk?" active":i<currentChunk?" done":"");
+    b.textContent = i+1;
+    b.onclick = ()=>jumpChunk(i);
+    c.appendChild(b);
+  });
+  const active = c.querySelector(".active");
+  if(active) active.scrollIntoView({inline:"center",block:"nearest"});
+  setProgress(currentChunk/Math.max(chunks.length-1,1));
+}
+
+function jumpChunk(i){
+  if(i<0||i>=chunks.length) return;
+  stopPlayback();
+  currentChunk=i;
+  sentences=[];
+  localStorage.setItem("last_chunk",i);
+  localStorage.setItem("last_sentence",0);
+  renderChunks();
+  setPlayState(false);
+  processChunk();
+}
+
+/* ═══════════════════════════════ CONTROLS ═══════════════════════════ */
+function setPlayState(isPlaying){
+  playing = isPlaying;
+  if(isPlaying){
+    toggleBtn.innerHTML="⏸ &nbsp;PAUSE";
+    toggleBtn.classList.add("paused");
+  } else {
+    toggleBtn.innerHTML="▶ &nbsp;PLAY";
+    toggleBtn.classList.remove("paused");
+  }
+}
+
+toggleBtn.onclick = ()=>{
+  if(playing){
+    stopPlayback(); setPlayState(false);
+  } else {
+    if(sentences.length) startPlayback();
+    else processChunk();
+  }
+};
+document.getElementById("prev").onclick = ()=>jumpChunk(currentChunk-1);
+document.getElementById("next").onclick = ()=>jumpChunk(currentChunk+1);
+
+function stopPlayback(){
+  speakAborted=true; playing=false;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  hideLoading();
+}
+
+/* ═══════════════════════════════ VOICES ═════════════════════════════ */
+function preloadVoices(){ voices = speechSynthesis.getVoices(); }
+speechSynthesis.onvoiceschanged = ()=>{ voices = speechSynthesis.getVoices(); };
+
+function getBestVoice(lang){
+  if(!voices.length) voices = speechSynthesis.getVoices();
+  return voices.find(v=>v.lang===lang)
+      || voices.find(v=>v.lang.startsWith(lang.split("-")[0]))
+      || null;
+}
+
+/* ═══════════════════════════════ AI ════════════════════════════════ */
+async function processChunk(){
+  if(!GEMINI_KEY){ alert("Enter Gemini API key first"); return; }
+  if(!chunks[currentChunk]) return;
+
+  showLoading("AI processing chunk "+(currentChunk+1)+"…");
+  setStatus("Thinking…");
+
+  const prompt = `You are cleaning Hindi subtitles and converting them into natural, human-sounding conversational pairs.
+
+STRICT RULES:
+
+Split into 6–10 SHORT sentence pairs
+Each sentence must be 6–12 words ONLY
+Remove timestamps and noise tags like [music], [applause]
+Do NOT skip any meaningful content
+Fix broken Hindi into clean, natural spoken Hindi
+Keep the original meaning, but do NOT translate English literally
+English must sound like real spoken conversation (casual, human)
+Preserve emotions (fear, excitement, fun, confusion, etc.)
+Use contractions in English where natural (I’m, gonna, wanna, let’s)
+Add light conversational fillers when appropriate (hey, wait, okay, look)
+Avoid robotic or overly formal language in both Hindi and English
+
+OUTPUT FORMAT:
+
+Return ONLY a valid JSON array
+Each item must have:
+"hi": Hindi sentence
+"en": Natural English sentence
+No markdown, no explanation, no extra text
+
+FORMAT EXAMPLE:
+[{"hi":"...","en":"..."},{"hi":"...","en":"..."}]
+
+STYLE GUIDE:
+
+Hindi should feel like real spoken dialogue (not textbook)
+English should feel like a YouTuber or friend talking casually
+Keep energy and personality alive
+Make English natural, not word-for-word translation
+
+INPUT:
+${chunks[currentChunk]}`;
+
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key="+GEMINI_KEY,
+        { method:"POST", headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({contents:[{parts:[{text:prompt}]}]}) }
+      );
+      const data = await res.json();
+      if(!data.candidates) throw new Error("No candidates: "+JSON.stringify(data));
+      let raw = data.candidates[0].content.parts[0].text;
+      raw = raw.replace(/```json|```/g,"");
+      raw = raw.substring(raw.indexOf("["),raw.lastIndexOf("]")+1);
+      const parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed)||parsed.length<3) throw new Error("Bad split");
+      sentences = parsed;
+      hideLoading();
+      setStatus("Chunk "+(currentChunk+1)+" · "+sentences.length+" lines");
+      startPlayback();
+      return;
+    }catch(e){
+      console.warn("Attempt "+(attempt+1)+" failed:",e);
+      showLoading("Retry "+(attempt+1)+"/3…");
+      await sleep(1600);
+    }
+  }
+  hideLoading();
+  setStatus("❌ AI failed — check key/network");
+}
+
+/* ═══════════════════════════════ PLAYBACK ═══════════════════════════ */
+async function startPlayback(){
+  if(!sentences.length) return;
+  stopPlayback();
+  await sleep(130);
+  playing=true; speakAborted=false;
+  setPlayState(true);
+  await enableWakeLock();
+
+  const startIndex = Number(localStorage.getItem("last_sentence"))||0;
+
+  for(let i=startIndex;i<sentences.length;i++){
+    if(!playing) return;
+    await showSentence(sentences[i],i);
+    if(!playing) return;
+  }
+
+  localStorage.setItem("last_sentence",0);
+  currentChunk++;
+  localStorage.setItem("last_chunk",currentChunk);
+
+  if(currentChunk<chunks.length){
+    renderChunks();
+    processChunk();
+  } else {
+    setPlayState(false);
+    setStatus("🎉 Finished!");
+    hindiBox.classList.remove("show");
+    englishBox.classList.remove("show");
+    setProgress(1);
+  }
+}
+
+async function showSentence(s,index){
+  localStorage.setItem("last_chunk",currentChunk);
+  localStorage.setItem("last_sentence",index);
+
+  await fade(hindiBox,s.hi);
+  if(!playing) return;
+  await speakText(s.hi,"hi-IN");
+  if(!playing) return;
+
+  await sleep(6000);
+  if(!playing) return;
+
+  await fade(englishBox,s.en);
+  if(!playing) return;
+  await speakText(s.en,"en-US");
+  if(!playing) return;
+
+  await sleep(2500);
+}
+
+/* ═══════════════════════════════ SPEECH (Android safe) ══════════════ */
+function speakText(text,lang){
+  return new Promise(resolve=>{
+    if(!playing){ resolve(); return; }
+    speechSynthesis.cancel();
+
+    setTimeout(()=>{
+      if(!playing){ resolve(); return; }
+
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = 0.9;
+      const v = getBestVoice(lang);
+      if(v) u.voice = v;
+
+      let done=false;
+      const finish=()=>{ if(!done){ done=true; clearTimeout(wd); resolve(); } };
+
+      // Watchdog — Android Chrome stalls silently
+      const words = text.split(" ").length;
+      const wd = setTimeout(()=>{
+        speechSynthesis.cancel(); finish();
+      }, Math.max(words*660,3500)+2000);
+
+      u.onend   = finish;
+      u.onerror = finish; // "interrupted" on cancel is normal on Android
+
+      speechSynthesis.speak(u);
+    },160); // 160ms gap critical for Android Chrome
+  });
+}
+</script>
+</body>
+</html>
