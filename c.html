@@ -484,10 +484,12 @@ async function generateAndPlay() {
 
   const topicLine = `The paragraph should be about the theme: "${topic}".`;
 
-  const prompt = `Write a simple Hindi paragraph (150–220 words) in very easy, everyday spoken Hindi.
+  const prompt = `Write a simple Hindi paragraph in very easy, everyday spoken Hindi.
 ${topicLine}
 The paragraph should naturally focus on this part of speech: ${grammar}. Naturally include many examples of it.
 Keep the language natural and conversational, not formal or bookish.
+Translate hindi sentences to native english speaker tone.
+Don't use any special characters in the sentences.
 
 Then break the paragraph into small natural sentences. Convert the output into a JSON array where each item has:
 'hi': the Hindi sentence
