@@ -292,6 +292,14 @@ const GRAMMAR_TOPICS = [
   { label:"Interj.",   hi:"विस्मयादिबोधक",val:"विस्मयादिबोधक (Interjection)" },
 ];
 
+const RANDOM_TOPICS = [
+  "market","kitchen","travel","friendship","weather","school","family",
+  "cricket","monsoon","street food","morning routine","festival","village",
+  "office","shopping","train journey","childhood","cooking","neighbours","garden"
+];
+
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
 /* ═══════════════════════════════ STATE ══════════════════════════════ */
 let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
 let selectedGrammar = "random";
@@ -361,7 +369,13 @@ async function enableWakeLock() {
   } catch(e) {}
 }
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && playing) enableWakeLock();
+  if (document.visibilityState === "hidden") {
+    // Stop when tab is hidden — browser kills TTS anyway
+    if (playing) { stopPlayback(); setPlayState(false); setStatus("⏸ Paused — tab hidden"); }
+  } else {
+    // Re-acquire wake lock when tab comes back (if user resumes manually)
+    if (playing) enableWakeLock();
+  }
 });
 
 /* ═══════════════════════════════ SESSION STRIP ══════════════════════ */
@@ -454,14 +468,15 @@ async function generateAndPlay() {
   showLoading("Generating Hindi content…");
   setStatus("Thinking…");
 
-  const topic = topicInput.value.trim();
+  // Always respect current UI settings; "Random" pill = pick one each time
+  const topic = topicInput.value.trim() || pickRandom(RANDOM_TOPICS);
+
+  const grammarPool = GRAMMAR_TOPICS.filter(g => g.val !== "random").map(g => g.val);
   const grammar = selectedGrammar === "random"
-    ? "a randomly chosen part of speech (संज्ञा, सर्वनाम, क्रिया, विशेषण, क्रिया विशेषण, संबंधबोधक, समुच्चयबोधक, or विस्मयादिबोधक)"
+    ? pickRandom(grammarPool)
     : selectedGrammar;
 
-  const topicLine = topic
-    ? `The paragraph should be about the theme: "${topic}".`
-    : "Choose an interesting everyday theme (e.g. market, kitchen, travel, friendship, weather).";
+  const topicLine = `The paragraph should be about the theme: "${topic}".`;
 
   const prompt = `Write a simple Hindi paragraph (150–220 words) in very easy, everyday spoken Hindi.
 ${topicLine}
@@ -529,9 +544,16 @@ async function startPlayback(startIndex) {
   }
 
   setProgress(1);
-  setPlayState(false);
-  setStatus("Session " + (currentSession + 1) + " done ✅");
   renderSessions();
+  // Auto-continue as long as playback wasn't manually stopped
+  if (playing) {
+    setStatus("Next session incoming…");
+    await sleep(1800);
+    if (playing) generateAndPlay(); // uses current UI topic + grammar
+  } else {
+    setPlayState(false);
+    setStatus("Session " + (currentSession + 1) + " done ✅");
+  }
 }
 
 async function showSentence(s, index) {
