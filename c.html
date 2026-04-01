@@ -292,13 +292,23 @@ const GRAMMAR_TOPICS = [
   { label:"Interj.",   hi:"विस्मयादिबोधक",val:"विस्मयादिबोधक (Interjection)" },
 ];
 
-const RANDOM_TOPICS = [
+const ORDERED_TOPICS = [
   "market","kitchen","travel","friendship","weather","school","family",
   "cricket","monsoon","street food","morning routine","festival","village",
-  "office","shopping","train journey","childhood","cooking","neighbours","garden",
-  "bus stop","tea stall","evening walk","mobile phone","internet","social media","online shopping","birthday party","wedding","doctor visit","hospital","gym","exercise","yoga","park","traffic","police","rainy day","summer vacation","winter morning","breakfast","lunch","dinner","fast food","restaurant","hotel stay","flight journey","metro","auto ride","bike ride","car drive","pet dog","pet cat","animals","birds","farm","farmer","school bus","classroom","homework","teacher","exam day","result day","holiday","picnic","zoo","museum","movie","cinema hall","tv show","cartoon","music","dance","singing","shopping mall","grocery store","vegetable market","fruit shop","clothes shop","shoe shop","tailor","salon","haircut","makeup","cleaning","washing clothes","ironing","sleeping","dream","alarm clock","late night","early morning","sunrise","sunset","river","lake","mountains","forest","beach","road trip","traffic jam","accident","helping others","kindness","honesty","truth","lie","anger","happiness","sadness","fear","surprise","love","friend call","family dinner","guest at home","festival preparation","decoration","lights","gifts","shopping list","budget","saving money","bank","atm","online payment","upi","bill payment","electricity","water supply","internet issue","repair work","plumber","electrician","car mechanic","office meeting","boss","colleague","teamwork","deadline","project","presentation","email","phone call","interview","job search","promotion","salary","leave application","work from home","time management","stress","relaxation","meditation","reading book","writing","drawing","painting","craft","gardening","planting trees","watering plants","clean city","pollution","garbage","recycling","plastic","environment","global warming","news","newspaper","headline","weather report","sports","football","badminton","kabaddi","running","walking","cycling","healthy food","junk food","diet","water drinking","doctor advice","medicine","fever","cold","cough","first aid","emergency","help line","police station","court","law","rules","discipline","school rules","punishment","reward","competition","winning","losing","motivation","goal","dream job","future plan","childhood memory","old friends","school days","college life","first job","first salary","success","failure","learning","mistake","improvement","daily routine","weekend","free time","hobby","gaming","mobile game","online class","teacher explanation","group study","notes","revision","confidence","public speaking","stage fear","celebration","party","cake","snacks","cold drink","tea time","coffee","chatting","gossip","argument","discussion","solution","problem","idea","innovation","technology","robot","ai","computer","laptop","keyboard","mouse","software","app","update","bug","error","fixing","learning new skill","practice","training","online course","certificate","achievement","award","respect","responsibility","family support","parents","siblings","grandparents","uncle","aunt","cousins","neighbour help","community","society","cleanliness","security","watchman","gate","lift","stairs","electric cut","power backup","generator","fan","ac","heater","water cooler","kitchen work","cooking gas","cylinder","utensils","washing dishes","cutting vegetables","making tea","making roti","making rice","making dal",
-  "railway station","platform","ticket counter","waiting room","lost luggage","announcement","queue","crowd","security check","boarding","seat reservation","window seat","upper berth","lower berth","travel bag","packing","unpacking","tour guide","map","direction","lost in city","new place","language problem","local food","street market","bargaining","cheap items","expensive things","brand","discount","sale","offer","festival shopping","gift wrapping","surprise gift","return gift","invitation","wedding card","function hall","dance floor","dj night","music system","loud sound","neighbors complaint","silence","peace","noise","construction work","dust","heat","cold wind","fog","storm","thunder","lightning","umbrella","raincoat","wet clothes","dry clothes","laundry","washing machine","detergent","soap","clean water","dirty water","tap","bucket","bathroom","mirror","toothbrush","toothpaste","bath","shower","towel","comb","hair oil","face wash","skin care","perfume","deodorant","dressing","formal clothes","casual clothes","uniform","shoes","slippers","socks","watch","bag","wallet","money","coins","notes","change","loan","interest","saving habit","expenses","income","profit","loss","business","customer","shopkeeper","service","feedback","review","rating","complaint","support","call center","waiting time","hold music","network issue","slow internet","fast internet","download","upload","video call","mute","unmute","camera on","camera off","meeting link","login","logout","password","forgot password","security","otp","verification","account","profile","settings","update profile","privacy","data","backup","restore","delete","recover","file","folder","document","pdf","image","video","editing","cut copy paste","typing","keyboard shortcut","mouse click","right click","double click","scroll","zoom","screen","brightness","volume","headphones","speaker","mic","recording","playback","pause","stop","restart","shutdown","power button","charging","battery","low battery","full charge","power bank","cable","adapter","plug","socket","switch","fan speed","light on","light off","bulb","tube light","led","decoration lights","festival lights","rangoli","flowers","garland","temple","prayer","morning पूजा","evening आरती","bell","incense sticks","oil lamp","fasting","prasad","devotion","faith","belief","tradition","culture","custom","ritual","story","myth","history","freedom","independence","leader","hero","soldier","army","police duty","traffic rule","helmet","seatbelt","fine","license","driving","learning driving","driving test","road safety","signal","red light","green light","yellow light","zebra crossing","footpath","street light","night walk","dark road","fear at night","safety","self defense","help request","emergency call","ambulance","hospital visit","doctor advice","healthy lifestyle","morning walk","fresh air","deep breathing","exercise routine","gym trainer","weight loss","weight gain","protein","vitamins","fruits","vegetables","junk craving","sweet food","spicy food","home food","outside food","tiffin","lunch box","sharing food","friends lunch","school break","office break","tea break","coffee break","snack time","hunger","thirst","cold drink","juice","milk","water bottle","clean water","boiling water","filter","fridge","freezer","ice","cooling","heating","microwave","gas stove","flame","burning","safety in kitchen","knife","cut","injury","first aid box","bandage","medicine time","tablet","syrup","rest","sleep","nap","dream","night routine","morning habits","good habits","bad habits","punctuality","late coming","early leaving","discipline","focus","attention","concentration","distraction","mobile addiction","screen time","study time","revision time","test preparation","confidence building","practice speaking","learning english","grammar","sentence","word meaning","translation","conversation","mistake correction","improvement","feedback","teacher help","parent support","self study","online learning","offline class","group discussion","debate","presentation skills","stage performance","clapping","appreciation","criticism","motivation speech","goal setting","planning","strategy","execution","result","success story","failure lesson","hard work","smart work","time saving","shortcut","habit building","daily tracking","progress","growth","experience","knowledge","wisdom"
+  "office","shopping","train journey","childhood","cooking","neighbours","garden"
 ];
+
+// Cycles in order, saved across page loads
+let topicIndex = Number(localStorage.getItem("topic_index") || 0) % ORDERED_TOPICS.length;
+
+function nextTopic() {
+  const custom = topicInput.value.trim();
+  if (custom) return custom;
+  const t = ORDERED_TOPICS[topicIndex];
+  topicIndex = (topicIndex + 1) % ORDERED_TOPICS.length;
+  localStorage.setItem("topic_index", topicIndex);
+  return t;
+}
 
 function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
@@ -474,8 +484,8 @@ async function generateAndPlay() {
   showLoading("Generating Hindi content…");
   setStatus("Thinking…");
 
-  // Always respect current UI settings; "Random" pill = pick one each time
-  const topic = topicInput.value.trim() || pickRandom(RANDOM_TOPICS);
+  // Topic cycles in order (or custom input); grammar respects UI pill
+  const topic = nextTopic();
 
   const grammarPool = GRAMMAR_TOPICS.filter(g => g.val !== "random").map(g => g.val);
   const grammar = selectedGrammar === "random"
@@ -484,21 +494,24 @@ async function generateAndPlay() {
 
   const topicLine = `The paragraph should be about the theme: "${topic}".`;
 
-  const prompt = `Write a simple Hindi paragraph in very easy, everyday spoken Hindi.
+  const prompt = `Write a simple Hindi paragraph (150–220 words) in very easy, everyday spoken Hindi.
 ${topicLine}
 The paragraph should naturally focus on this part of speech: ${grammar}. Naturally include many examples of it.
 Keep the language natural and conversational, not formal or bookish.
-Translate hindi sentences to native english speaker tone.
-Don't use any special characters in the sentences.
 
-Then break the paragraph into small natural sentences. Convert the output into a JSON array where each item has:
-'hi': the Hindi sentence
-'en': its natural English translation (not literal, but conversational)
+CRITICAL RULES:
+- Absolutely no markdown. No asterisks (*), no bold (**word**), no underscores, no special symbols. Plain text only.
+- Hindi sentences: clean Devanagari script, normal punctuation only (। or . or ? or !).
+- English translation: write it the way a native English speaker would naturally say it — idiomatic and fluent, never word-for-word literal.
 
-Output format example:
+Break into small natural sentences. Return a JSON array where each item has:
+'hi': the Hindi sentence (plain text, zero markdown)
+'en': natural idiomatic English a native speaker would actually say
+
+Output format:
 [{"hi":"...","en":"..."},{"hi":"...","en":"..."}]
 
-Return ONLY valid JSON. Do not add explanations, headings, or extra text.`;
+Return ONLY valid JSON. No explanations, no headings, no markdown, no extra text.`;
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -515,10 +528,16 @@ Return ONLY valid JSON. Do not add explanations, headings, or extra text.`;
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed) || parsed.length < 3) throw new Error("Bad split");
 
+      // Strip residual markdown bold/italic as safety net
+      const clean = parsed.map(s => ({
+        hi: s.hi.replace(/\*{1,3}([^*]+)\*{1,3}/g,"$1").replace(/_([^_]+)_/g,"$1").trim(),
+        en: s.en.replace(/\*{1,3}([^*]+)\*{1,3}/g,"$1").replace(/_([^_]+)_/g,"$1").trim()
+      }));
+
       // Add to sessions
-      sessions.push(parsed);
+      sessions.push(clean);
       currentSession = sessions.length - 1;
-      sentences = parsed;
+      sentences = clean;
 
       hideLoading();
       setStatus("Session " + sessions.length + " · " + sentences.length + " lines");
