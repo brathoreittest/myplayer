@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SubTrainer Pro</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#06060f">
+<meta name="mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060f;--s1:#0d0d1a;--s2:#13132a;--s3:#1a1a35;
+  --border:#22224a;--accent:#ff3860;--blue:#4f8aff;
+  --green:#00d4aa;--gold:#ffcc44;--purple:#9b6dff;
+  --text:#f0f0ff;--muted:#5a5a90;
+  --r:14px;--sb:env(safe-area-inset-bottom,0px);
+  --font:'Outfit',sans-serif;--hi:'Noto Sans Devanagari',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden;overscroll-behavior:none;}
+body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.022'/%3E%3C/svg%3E");pointer-events:none;z-index:999;}
+
+.tab-bar{display:flex;background:var(--s1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:60;}
+.tab{flex:1;padding:13px 4px 11px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.tab.on{color:var(--text);border-color:var(--accent);}
+.tab .ti{font-size:15px;display:block;margin-bottom:3px;}
+.page{display:none;}.page.on{display:block;}
+
+.hstrip{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:rgba(6,6,15,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);position:sticky;top:44px;z-index:55;}
+.logo{font-size:19px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo em{font-style:normal;font-size:10px;font-weight:600;letter-spacing:2px;display:block;-webkit-text-fill-color:var(--muted);}
+#statusPill{font-size:10px;font-weight:600;color:var(--muted);text-align:right;max-width:155px;line-height:1.5;}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);}
+.st{padding:9px 5px;text-align:center;border-right:1px solid var(--border);}
+.st:last-child{border-right:none;}
+.st .v{font-size:17px;font-weight:800;font-family:var(--mono);}
+.st .l{font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+
+.body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 13px calc(278px + var(--sb));}
+
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:9px;}
+.clabel{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:9px;}
+
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.mcard{padding:11px;border-radius:11px;border:2px solid var(--border);background:var(--s2);cursor:pointer;transition:all .2s;text-align:left;}
+.mcard.on{border-color:var(--accent);background:rgba(255,56,96,.07);}
+.mcard .mi{font-size:22px;margin-bottom:5px;}
+.mcard .mt{font-size:12px;font-weight:700;}
+.mcard .md{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.mcard .mb{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:7px;margin-top:4px;background:rgba(255,56,96,.18);color:var(--accent);}
+.mcard.on .mb{background:var(--accent);color:#fff;}
+
+.diff-row{display:flex;gap:6px;}
+.dbtn{flex:1;height:38px;border-radius:9px;border:1px solid var(--border);background:var(--s2);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;transition:all .18s;}
+.dbtn.on.e{background:#0a2018;border-color:#1a6b40;color:#40d490;}
+.dbtn.on.m{background:#1a1a08;border-color:#6b6b10;color:#d4d430;}
+.dbtn.on.h{background:#200a0a;border-color:#6b1010;color:#d43030;}
+
+.irow{display:flex;gap:7px;align-items:center;}
+input[type=password],input[type=text]{flex:1;padding:11px 13px;font-size:14px;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none;}
+input:focus{border-color:var(--accent);}
+.ibtn{width:44px;height:44px;border:none;border-radius:9px;background:var(--purple);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+
+.pills{display:flex;flex-wrap:wrap;gap:5px;}
+.pill{padding:5px 10px;border-radius:18px;border:1px solid var(--border);background:var(--s2);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .16s;}
+.pill.on{background:var(--purple);border-color:var(--purple);color:#fff;}
+
+.drow{display:flex;gap:7px;}
+.dlybtn{flex:1;height:39px;border-radius:9px;border:1px solid var(--border);background:var(--s2);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;}
+.dlybtn.on{background:linear-gradient(135deg,var(--accent),#aa0030);border-color:var(--accent);color:#fff;}
+
+.sstrip{display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;scrollbar-width:none;}
+.sstrip::-webkit-scrollbar{display:none;}
+.sbtn{flex:0 0 auto;min-width:38px;height:32px;border:1px solid var(--border);border-radius:7px;background:var(--s2);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;}
+.sbtn.done-s{background:#0a2018;border-color:#1a5030;color:#30a060;}
+.sbtn.act-s{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* PLAN */
+.plan-grid{display:flex;flex-direction:column;gap:6px;}
+.prow{display:flex;align-items:center;gap:9px;padding:10px 11px;border-radius:10px;border:1px solid var(--border);background:var(--s2);cursor:pointer;transition:border-color .2s;}
+.prow.done-p{border-color:var(--green);background:rgba(0,212,170,.05);}
+.prow .pi{font-size:20px;flex-shrink:0;}
+.prow .pinfo{flex:1;}
+.prow .pt{font-size:12px;font-weight:700;}
+.prow .ps{font-size:10px;color:var(--muted);margin-top:2px;}
+.prow .ptime{font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0;}
+.prow .pck{font-size:16px;flex-shrink:0;}
+
+.xp-track{height:7px;background:var(--s3);border-radius:4px;overflow:hidden;margin-top:7px;}
+.xp-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--purple));transition:width .6s ease;}
+.wdots{display:flex;gap:5px;margin-top:7px;}
+.wd{width:30px;height:30px;border-radius:7px;background:var(--s3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;}
+.wd.hit{background:rgba(255,204,68,.1);border-color:var(--gold);}
+.wd.today{border-color:var(--accent);}
+
+/* MILESTONE LIST */
+.mstone{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;background:var(--s2);border:1px solid var(--border);margin-bottom:7px;}
+.mstone.done{background:rgba(0,212,170,.07);border-color:rgba(0,212,170,.2);}
+
+/* TIPS */
+.tip-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:9px;}
+.tc-head{font-size:14px;font-weight:700;margin-bottom:7px;}
+.tc-body{font-size:12px;color:var(--muted);line-height:1.8;}
+.tc-body b{color:var(--text);}
+.highlight{background:rgba(79,138,255,.09);border:1px solid rgba(79,138,255,.2);border-radius:7px;padding:7px 10px;margin-top:7px;font-size:11px;color:var(--blue);line-height:1.6;}
+.srow{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px;}
+.snum{width:26px;height:26px;border-radius:7px;background:var(--accent);color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.sinfo{font-size:12px;color:var(--muted);line-height:1.6;}
+.sinfo b{color:var(--text);}
+
+/* PLAYER */
+.player{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(6,6,15,.97);border-top:1px solid var(--border);padding-bottom:var(--sb);backdrop-filter:blur(18px);}
+.pbar{display:flex;align-items:center;gap:7px;padding:0 13px 6px;}
+.pbar-track{flex:1;height:4px;background:var(--s3);border-radius:2px;overflow:hidden;}
+.pbar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple),var(--green));transition:width .5s;width:0%;}
+.pbar-lbl{font-size:10px;font-family:var(--mono);color:var(--muted);min-width:32px;text-align:right;}
+.sub-area{padding:12px 18px 4px;min-height:104px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+.sub-hi{font-family:var(--hi);font-size:21px;font-weight:600;line-height:1.6;color:#fff;opacity:0;transition:opacity .35s;min-height:30px;}
+.sub-en{font-size:14px;line-height:1.6;color:#8080c0;margin-top:4px;opacity:0;transition:opacity .35s;min-height:20px;font-style:italic;}
+.sub-hi.vis,.sub-en.vis{opacity:1;}
+.shad-row{display:none;align-items:center;justify-content:center;gap:9px;padding:2px 0 5px;}
+.shad-row.vis{display:flex;}
+.shad-ring{width:44px;height:44px;border-radius:50%;border:2px solid var(--green);background:rgba(0,212,170,.09);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;font-family:var(--mono);color:var(--green);animation:rp 1s ease infinite;}
+@keyframes rp{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,.28);}50%{box-shadow:0 0 0 8px rgba(0,212,170,0);}}
+.shad-txt{font-size:11px;color:var(--muted);}
+.ptip{display:none;margin:0 14px 5px;padding:6px 10px;background:rgba(255,204,68,.06);border:1px solid rgba(255,204,68,.18);border-radius:7px;font-size:11px;color:var(--gold);line-height:1.5;}
+.ptip.vis{display:block;}
+.crow{display:flex;align-items:center;gap:6px;padding:5px 11px 9px;}
+.navbtn{width:46px;height:46px;border:1px solid var(--border);border-radius:11px;background:var(--s2);color:var(--text);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.navbtn:active{background:var(--s3);}
+.playbtn{flex:1;height:46px;border:none;border-radius:11px;background:linear-gradient(135deg,var(--accent),#aa0030);color:#fff;font-family:var(--font);font-size:15px;font-weight:800;letter-spacing:.8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 4px 16px rgba(255,56,96,.28);transition:opacity .15s;}
+.playbtn:active{opacity:.8;}
+.playbtn.paused{background:linear-gradient(135deg,var(--purple),#4a1acc);box-shadow:0 4px 16px rgba(155,109,255,.28);}
+.repbtn{width:46px;height:46px;border:1px solid rgba(0,212,170,.22);border-radius:11px;background:rgba(0,212,170,.06);color:var(--green);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* TOASTS + OVERLAYS */
+.toast{position:fixed;top:74px;right:13px;z-index:400;font-size:13px;font-weight:700;padding:7px 14px;border-radius:18px;opacity:0;transform:translateY(-7px);transition:all .27s;pointer-events:none;}
+.toast.vis{opacity:1;transform:translateY(0);}
+.overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(6,6,15,.95);backdrop-filter:blur(10px);align-items:center;justify-content:center;flex-direction:column;gap:13px;}
+.overlay.vis{display:flex;}
+.spin{width:40px;height:40px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-msg{font-size:13px;color:var(--muted);}
+.load-topic{font-size:15px;font-weight:700;color:var(--text);text-align:center;padding:0 28px;max-width:320px;}
+.m-emoji{font-size:58px;animation:bop .55s ease infinite alternate;}
+@keyframes bop{from{transform:scale(1);}to{transform:scale(1.1);}}
+.m-title{font-size:24px;font-weight:800;}
+.m-sub{font-size:13px;color:var(--muted);text-align:center;padding:0 26px;line-height:1.7;}
+.m-btn{padding:12px 32px;border:none;border-radius:11px;background:var(--accent);color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:3px;}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toastXP" style="background:var(--green);color:#000;"></div>
+<div class="toast" id="toastStr" style="background:var(--gold);color:#000;"></div>
+
+<div class="overlay" id="loadOverlay">
+  <div class="spin"></div>
+  <div class="load-msg" id="loadMsg">Generating session…</div>
+  <div class="load-topic" id="loadTopic"></div>
+</div>
+
+<div class="overlay" id="mModal">
+  <div class="m-emoji" id="mEmoji">🏆</div>
+  <div class="m-title" id="mTitle"></div>
+  <div class="m-sub" id="mSub"></div>
+  <button class="m-btn" onclick="closeModal()">Keep Going →</button>
+</div>
+
+<!-- TABS -->
+<div class="tab-bar">
+  <div class="tab on" onclick="showTab('train')"><span class="ti">🎯</span>TRAIN</div>
+  <div class="tab" onclick="showTab('plan')"><span class="ti">📅</span>PLAN</div>
+  <div class="tab" onclick="showTab('progress')"><span class="ti">📊</span>STATS</div>
+  <div class="tab" onclick="showTab('tips')"><span class="ti">💡</span>GUIDE</div>
+</div>
+
+<div class="hstrip">
+  <div class="logo">SubTrainer <em>PRO</em></div>
+  <div id="statusPill">Ready</div>
+</div>
+
+<div class="stats">
+  <div class="st"><div class="v" id="sv-s" style="color:var(--gold)">0🔥</div><div class="l">Streak</div></div>
+  <div class="st"><div class="v" id="sv-x" style="color:var(--green)">0</div><div class="l">XP Today</div></div>
+  <div class="st"><div class="v" id="sv-n" style="color:var(--accent)">0</div><div class="l">Sentences</div></div>
+  <div class="st"><div class="v" id="sv-ss" style="color:var(--blue)">0</div><div class="l">Sessions</div></div>
+</div>
+
+<!-- TRAIN -->
+<div class="page on" id="page-train"><div class="body">
+
+  <div class="card">
+    <div class="clabel">Gemini API Key</div>
+    <div class="irow">
+      <input type="password" id="apiKey" placeholder="Paste your Gemini API key…">
+      <button class="ibtn" onclick="saveKey()">💾</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Learning Mode</div>
+    <div class="mode-grid" id="modeGrid">
+      <div class="mcard on" data-m="shadowing" onclick="setMode(this)">
+        <div class="mi">🎤</div><div class="mt">Shadowing</div>
+        <div class="md">Hear Hindi → try saying English → hear the correct answer</div>
+        <span class="mb">FASTEST METHOD</span>
+      </div>
+      <div class="mcard" data-m="repeat" onclick="setMode(this)">
+        <div class="mi">🔁</div><div class="mt">Repeat After</div>
+        <div class="md">Hear English → 8-sec pause → repeat it aloud yourself</div>
+        <span class="mb">MUSCLE MEMORY</span>
+      </div>
+      <div class="mcard" data-m="listen" onclick="setMode(this)">
+        <div class="mi">👂</div><div class="mt">Listen Only</div>
+        <div class="md">Relax and absorb. Perfect for commute or background</div>
+        <span class="mb">PASSIVE</span>
+      </div>
+      <div class="mcard" data-m="reading" onclick="setMode(this)">
+        <div class="mi">📖</div><div class="mt">Reading</div>
+        <div class="md">Read both languages silently. No audio</div>
+        <span class="mb">VISUAL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Difficulty Level</div>
+    <div class="diff-row">
+      <button class="dbtn e on" onclick="setDiff('e',this)">😊 Easy</button>
+      <button class="dbtn m" onclick="setDiff('m',this)">💪 Medium</button>
+      <button class="dbtn h" onclick="setDiff('h',this)">🔥 Hard</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Topic <span style="color:var(--muted);font-size:9px;letter-spacing:0">(optional — leave blank to auto-cycle)</span></div>
+    <div class="irow">
+      <input type="text" id="topicInput" placeholder="e.g. office meeting, at the doctor, travel…">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Think Time — Hindi → English Gap</div>
+    <div class="drow" id="dlyBtns">
+      <button class="dlybtn" data-ms="15000">15 sec</button>
+      <button class="dlybtn" data-ms="20000">20 sec</button>
+      <button class="dlybtn" data-ms="25000">25 sec</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Grammar Focus</div>
+    <div class="pills" id="gramPills"></div>
+  </div>
+
+  <div class="card" id="sessCard" style="display:none">
+    <div class="clabel">Sessions — <span id="sessInfo"></span></div>
+    <div class="sstrip" id="sessStrip"></div>
+  </div>
+
+</div></div>
+
+<!-- PLAN -->
+<div class="page" id="page-plan"><div class="body">
+
+  <div class="card" style="background:rgba(255,56,96,.05);border-color:rgba(255,56,96,.18);">
+    <div class="clabel" style="color:var(--accent)">🗓 Your Daily 1-Hour Training Plan</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:10px;">
+      Designed for <b style="color:var(--text)">intermediate speakers</b> aiming for daily + professional fluency.
+      Tap any block to start that session automatically.
+    </div>
+    <div class="plan-grid" id="planGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">This Week</div>
+    <div class="wdots" id="weekDots"></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--muted);">Complete at least 1 session today to keep your streak alive. 🔥</div>
+  </div>
+
+  <div class="card" style="background:rgba(79,138,255,.05);border-color:rgba(79,138,255,.18);">
+    <div class="clabel" style="color:var(--blue)">📈 21-Day Transformation Path</div>
+    <div style="font-size:12px;color:var(--muted);line-height:2;">
+      <b style="color:var(--text)">Week 1 — Warm Up (Days 1–7)</b><br>
+      Shadowing daily conversations. Easy difficulty. Your mouth gets used to English rhythm and feel.<br><br>
+      <b style="color:var(--text)">Week 2 — Level Up (Days 8–14)</b><br>
+      Switch to Medium difficulty. Add office/meeting topics. Use Repeat-After-Me for tricky phrases.<br><br>
+      <b style="color:var(--text)">Week 3 — Break Through (Days 15–21)</b><br>
+      Hard mode. Mix Shadowing + Repeat. You will feel fluency unlocking naturally.
+    </div>
+  </div>
+
+</div></div>
+
+<!-- STATS -->
+<div class="page" id="page-progress"><div class="body">
+
+  <div class="card">
+    <div class="clabel">Today's XP Progress</div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;">
+      <span>XP Today: <b id="xpTodayLbl" style="color:var(--text)">0</b></span>
+      <span>Daily Goal: <b style="color:var(--text)">300 XP</b></span>
+    </div>
+    <div class="xp-track"><div class="xp-fill" id="xpBarFill"></div></div>
+    <div style="margin-top:8px;font-size:10px;color:var(--muted);">Each sentence = +10 XP · Each completed session = +20 bonus XP</div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">All Time Stats</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="background:var(--s2);border-radius:9px;padding:12px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--accent)" id="stat-snt">0</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.8px;text-transform:uppercase">Total Sentences</div>
+      </div>
+      <div style="background:var(--s2);border-radius:9px;padding:12px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--blue)" id="stat-ss">0</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.8px;text-transform:uppercase">Total Sessions</div>
+      </div>
+      <div style="background:var(--s2);border-radius:9px;padding:12px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--gold)" id="stat-str">0</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.8px;text-transform:uppercase">Day Streak 🔥</div>
+      </div>
+      <div style="background:var(--s2);border-radius:9px;padding:12px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;font-family:var(--mono);color:var(--green)" id="stat-xp">0</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.8px;text-transform:uppercase">Total XP</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clabel">Milestones</div>
+    <div id="milestoneList"></div>
+  </div>
+
+  <div class="card" style="background:rgba(0,212,170,.04);border-color:rgba(0,212,170,.18);">
+    <div class="clabel" style="color:var(--green)">🔬 Why This Works — The Science</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+      <b style="color:var(--text)">Shadowing activates motor memory.</b> Speaking creates physical muscle habits in your mouth, jaw, and tongue — not just mental knowledge. After 20+ hours of practice, English speaking becomes automatic reflex.<br><br>
+      <b style="color:var(--text)">The 10,000-sentence milestone</b> is where most learners feel genuinely fluent. At 1 hour/day you can reach it in roughly 2–3 months.
+    </div>
+  </div>
+
+</div></div>
+
+<!-- TIPS / GUIDE -->
+<div class="page" id="page-tips"><div class="body">
+
+  <div class="tip-card">
+    <div class="tc-head">🥇 The One Rule That Changes Everything</div>
+    <div class="tc-body">
+      <b>Your mouth must move.</b> Thinking in English is NOT practice. Reading is NOT practice. You must physically say the words out loud in every single session. This one habit separates people who stay intermediate forever from those who break through.
+      <div class="highlight">💬 Even if alone, whisper. Even if wrong, say something. Volume of speaking practice is what creates fluency — not perfection.</div>
+    </div>
+  </div>
+
+  <div class="tip-card">
+    <div class="tc-head">🎤 How to Shadow Correctly</div>
+    <div class="tc-body">
+      <div class="srow"><div class="snum">1</div><div class="sinfo">See the <b>Hindi sentence</b> — understand the meaning</div></div>
+      <div class="srow"><div class="snum">2</div><div class="sinfo"><b>Try to say the English</b> — say anything, even if you're not sure</div></div>
+      <div class="srow"><div class="snum">3</div><div class="sinfo">The English answer appears — <b>notice the difference</b></div></div>
+      <div class="srow"><div class="snum">4</div><div class="sinfo"><b>Repeat the English aloud</b> — exactly as you heard it spoken</div></div>
+      <div class="srow"><div class="snum">5</div><div class="sinfo">Copy the <b>rhythm, speed, and tone</b> — not just the words</div></div>
+      <div class="highlight">🎯 Don't translate word-by-word. Feel the meaning and speak the whole chunk as one unit.</div>
+    </div>
+  </div>
+
+  <div class="tip-card">
+    <div class="tc-head">📅 Your Ideal 1-Hour Schedule</div>
+    <div class="tc-body">
+      <div class="srow"><div class="snum">1</div><div class="sinfo"><b>0–20 min: Shadowing — Daily Life</b><br>Morning routine, shopping, family, restaurant. Warm up your voice.</div></div>
+      <div class="srow"><div class="snum">2</div><div class="sinfo"><b>20–40 min: Shadowing — Professional</b><br>Office meetings, email phrases, talking to manager. Core work.</div></div>
+      <div class="srow"><div class="snum">3</div><div class="sinfo"><b>40–50 min: Repeat After Me</b><br>Replay hard phrases. Focus on pronunciation and natural rhythm.</div></div>
+      <div class="srow"><div class="snum">4</div><div class="sinfo"><b>50–60 min: Listen Only</b><br>Relax. Let the language flow through you passively.</div></div>
+    </div>
+  </div>
+
+  <div class="tip-card">
+    <div class="tc-head">⚡ Fast Progress Secrets</div>
+    <div class="tc-body">
+      <b>Never skip two days in a row.</b> One missed day is human. Two breaks the habit loop completely.<br><br>
+      <b>Use the 🔁 replay button.</b> Doing any session a second time is 3× more effective than doing a new one.<br><br>
+      <b>Imitate tone, not just words.</b> English has a specific music — rising pitch on questions, stress on key words. Copy the sound, not just the meaning.<br><br>
+      <b>Learn chunks, not sentences.</b> "by the way" / "to be honest" / "I'll look into it" — these are single units your brain should store as one block.<br><br>
+      <b>Don't aim to be perfect.</b> Aim to say something. Fluency comes from volume, not from zero mistakes.
+      <div class="highlight">🏆 At 1 hour/day, intermediate speakers typically reach confident conversational fluency in 6–8 weeks.</div>
+    </div>
+  </div>
+
+  <div class="tip-card">
+    <div class="tc-head">🗣️ Common Indian English Mistakes to Fix</div>
+    <div class="tc-body">
+      <b>❌ "Do the needful"</b> → <b style="color:var(--green)">✅ "I'll take care of it" / "I'll handle it"</b><br>
+      <b>❌ "Revert back to me"</b> → <b style="color:var(--green)">✅ "Get back to me" / "Let me know"</b><br>
+      <b>❌ "Prepone the meeting"</b> → <b style="color:var(--green)">✅ "Move the meeting earlier"</b><br>
+      <b>❌ "I am knowing this"</b> → <b style="color:var(--green)">✅ "I know this"</b><br>
+      <b>❌ "Itself"</b> (overused) → <b style="color:var(--green)">✅ "on its own" / "automatically"</b><br>
+      <b>❌ "Out of station"</b> → <b style="color:var(--green)">✅ "Out of town" / "travelling"</b><br>
+      <b>❌ "Good name?"</b> → <b style="color:var(--green)">✅ "What's your name?" / "May I know your name?"</b>
+      <div class="highlight">SubTrainer teaches you how international-standard English speakers actually talk in these exact situations.</div>
+    </div>
+  </div>
+
+  <div class="tip-card">
+    <div class="tc-head">🔊 Pronunciation Quick Wins</div>
+    <div class="tc-body">
+      <b>"W" sound:</b> Round your lips first — "work" not "vork"<br>
+      <b>"TH" sound:</b> Tongue gently between teeth — "think" not "tink"<br>
+      <b>Word stress:</b> "preSENT" (verb) vs "PREsent" (noun/gift)<br>
+      <b>Contractions:</b> "gonna" (going to), "wanna" (want to), "gotta" (got to) — use these in casual speech<br>
+      <b>Linking words:</b> "pick it up" sounds like "pickit-up" at natural speed — don't pause between every word<br>
+      <b>Sentence stress:</b> Stress the IMPORTANT word — "I didn't SAY he stole it" vs "I didn't say HE stole it"
+      <div class="highlight">📻 Always listen carefully to how the voice says each sentence — then copy the exact rhythm and stress pattern.</div>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- PLAYER -->
+<div class="player">
+  <div class="pbar">
+    <div class="pbar-track"><div class="pbar-fill" id="pbarFill"></div></div>
+    <div class="pbar-lbl" id="pbarLbl">0/0</div>
+  </div>
+  <div class="sub-area">
+    <div class="sub-hi" id="dispHi"></div>
+    <div class="sub-en" id="dispEn"></div>
+  </div>
+  <div class="shad-row" id="shadRow">
+    <span style="font-size:18px">🎤</span>
+    <div class="shad-ring" id="shadNum">15</div>
+    <div class="shad-txt" id="shadLbl">Say it in English!</div>
+  </div>
+  <div class="ptip" id="ptip"></div>
+  <div class="crow">
+    <button class="navbtn" onclick="goPrev()">◀</button>
+    <button class="playbtn" id="playBtn" onclick="togglePlay()">▶ PLAY</button>
+    <button class="repbtn" onclick="replaySession()" title="Replay">🔁</button>
+    <button class="navbtn" onclick="goNext()">▶▶</button>
+  </div>
+</div>
+
+<script>
+/* ─── GRAMMAR ─── */
+const GRAM=[
+  {l:"Random",v:"random"},{l:"All Mixed",v:"all mixed"},
+  {l:"Verb",v:"Verb"},{l:"Tense",v:"Tense"},
+  {l:"Present",v:"Present Tense"},{l:"Past",v:"Past Tense"},
+  {l:"Future",v:"Future Tense"},{l:"Question",v:"Interrogative"},
+  {l:"Negative",v:"Negative"},{l:"Modal",v:"Modal Verbs"},
+  {l:"Adjective",v:"Adjective"},{l:"Adverb",v:"Adverb"},
+  {l:"Phrasal",v:"Phrasal Verbs"},{l:"Idioms",v:"Idioms"},
+  {l:"Daily",v:"Daily Conversation"},{l:"Office",v:"Office Conversation"},
+  {l:"Casual",v:"Casual Conversation"},{l:"Story",v:"Story"},
+  {l:"Dialogue",v:"Dialogue"},{l:"Simple",v:"Simple Sentence"},
+  {l:"Compound",v:"Compound Sentence"},{l:"Imperative",v:"Imperative"},
+  {l:"Practice",v:"Practice Sentences"},
+];
+
+const TOPICS=[
+  "Morning Routine","At the Doctor","At the Pharmacy","Shopping at a Store",
+  "Ordering Food Online","At a Restaurant","Taking a Taxi","Talking About Your Family",
+  "Making Plans with Friends","Talking About Your Weekend","Discussing a Movie",
+  "Talking About the News","At the Bank","Dealing with a Complaint",
+  "Daily Standup Meeting","Starting a Meeting","Ending a Meeting Professionally",
+  "Giving a Project Update","Explaining a Problem at Work","Proposing a Solution",
+  "Disagreeing Politely in a Meeting","Asking for Clarification",
+  "Handling an Escalation","Talking to Your Manager","Talking to a Client",
+  "Giving Feedback to a Colleague","Handling Pressure at Work","Explaining a Delay",
+  "Email and Message Phrases","Presenting Data or Results",
+  "Expressing Your Opinion Confidently","Agreeing and Disagreeing",
+  "Making Polite Requests","Saying No Politely","Apologizing Professionally",
+  "Giving Compliments Naturally","Small Talk at Office","Networking Conversations",
+  "Handling Criticism Gracefully","Talking About Your Career",
+  "Job Interview Practice","Introducing Yourself Confidently",
+  "Discussing Salary and Appraisal","Motivating Your Team",
+  "Using Idioms in Daily Conversation","Common Phrasal Verbs at Work",
+  "Linking Words and Connectors","Expressing Emotions in English",
+  "Negotiating Deadlines","Handling Urgent Situations",
+];
+
+let tIdx=Number(localStorage.getItem("tp_idx")||0)%TOPICS.length;
+function nextTopic(){
+  const c=document.getElementById("topicInput").value.trim();
+  if(c)return c;
+  const t=TOPICS[tIdx];
+  tIdx=(tIdx+1)%TOPICS.length;
+  localStorage.setItem("tp_idx",tIdx);
+  return t;
+}
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ─── STATS ─── */
+function dKey(){return "d_"+new Date().toISOString().slice(0,10);}
+function yKey(){return "d_"+new Date(Date.now()-864e5).toISOString().slice(0,10);}
+const DS={streak:0,lastDay:"",sentTotal:0,sessTotal:0,xpTotal:0,xpToday:0,todayKey:"",planDone:{}};
+let S=Object.assign({},DS,JSON.parse(localStorage.getItem("pro3_stats")||"{}"));
+function saveS(){localStorage.setItem("pro3_stats",JSON.stringify(S));}
+
+function updateStreak(){
+  const today=dKey();
+  if(S.todayKey===today)return;
+  S.streak=(S.lastDay===yKey())?S.streak+1:1;
+  S.lastDay=today;S.todayKey=today;S.xpToday=0;
+  saveS();
+}
+
+function addXP(n){
+  S.xpToday+=n;S.xpTotal+=n;saveS();renderStats();
+  showToast("toastXP","+"+n+" XP");
+}
+function showToast(id,msg){
+  const t=document.getElementById(id);
+  t.textContent=msg;t.classList.add("vis");
+  setTimeout(()=>t.classList.remove("vis"),2100);
+}
+
+const MSTONES=[
+  {at:10,e:"⚡",t:"First 10 Sentences!",s:"You've started the journey. Every fluent speaker was once exactly where you are."},
+  {at:25,e:"🌱",t:"25 Done!",s:"You're building a real habit. Your mouth is learning the shape of English."},
+  {at:50,e:"🔥",t:"50 Sentences!",s:"Momentum is building fast. You're ahead of most learners already."},
+  {at:100,e:"💪",t:"100 Sentences!",s:"100 down. Your brain is physically forming new English pathways. Feel it!"},
+  {at:250,e:"🚀",t:"250 Sentences!",s:"This is serious progress. You are not the same speaker you were a week ago."},
+  {at:500,e:"🏆",t:"500 Sentences!",s:"500 sentences. Your fluency is real and people will notice."},
+  {at:1000,e:"👑",t:"1,000 Sentences!",s:"One thousand. You have broken through. Daily English is yours now."},
+];
+
+function checkMilestone(){
+  const hit=MSTONES.find(m=>m.at===S.sentTotal);
+  if(hit){
+    document.getElementById("mEmoji").textContent=hit.e;
+    document.getElementById("mTitle").textContent=hit.t;
+    document.getElementById("mSub").textContent=hit.s;
+    document.getElementById("mModal").classList.add("vis");
+  }
+}
+function closeModal(){document.getElementById("mModal").classList.remove("vis");}
+
+function renderStats(){
+  document.getElementById("sv-s").textContent=S.streak+"🔥";
+  document.getElementById("sv-x").textContent=S.xpToday;
+  document.getElementById("sv-n").textContent=S.sentTotal;
+  document.getElementById("sv-ss").textContent=S.sessTotal;
+  document.getElementById("stat-snt").textContent=S.sentTotal;
+  document.getElementById("stat-ss").textContent=S.sessTotal;
+  document.getElementById("stat-str").textContent=S.streak;
+  document.getElementById("stat-xp").textContent=S.xpTotal;
+  document.getElementById("xpTodayLbl").textContent=S.xpToday;
+  document.getElementById("xpBarFill").style.width=Math.min(S.xpToday/300,1)*100+"%";
+
+  const ml=document.getElementById("milestoneList");
+  ml.innerHTML="";
+  MSTONES.forEach(m=>{
+    const done=S.sentTotal>=m.at;
+    const d=document.createElement("div");
+    d.className="mstone"+(done?" done":"");
+    d.innerHTML=`<span style="font-size:18px">${done?"✅":m.e}</span>
+    <div><div style="font-size:12px;font-weight:700;color:${done?"var(--green)":"var(--muted)"}">${m.t}</div>
+    <div style="font-size:10px;color:var(--muted)">${m.at} sentences${done?" — Achieved! 🎉":" — "+Math.max(0,m.at-S.sentTotal)+" to go"}</div></div>`;
+    ml.appendChild(d);
+  });
+}
+
+/* ─── WEEK DOTS ─── */
+function renderWeek(){
+  const wrap=document.getElementById("weekDots");wrap.innerHTML="";
+  const labels=["M","T","W","T","F","S","S"];
+  const today=new Date();const dow=today.getDay();
+  for(let i=0;i<7;i++){
+    const d=new Date(today);
+    d.setDate(today.getDate()-((dow+6)%7)+i);
+    const key="d_"+d.toISOString().slice(0,10);
+    const isToday=key===dKey();
+    const hit=(S.lastDay===key)||(isToday&&S.xpToday>0);
+    const el=document.createElement("div");
+    el.className="wd"+(hit?" hit":"")+(isToday?" today":"");
+    el.textContent=hit?"🔥":labels[i];
+    wrap.appendChild(el);
+  }
+}
+
+/* ─── PLAN ─── */
+const PLAN=[
+  {icon:"🎤",title:"Block 1 — Daily Life Shadowing",sub:"Daily conversation • Shadowing • Easy/Medium",time:"20 min",mode:"shadowing",topic:""},
+  {icon:"💼",title:"Block 2 — Professional Shadowing",sub:"Office/meetings • Shadowing • Medium",time:"20 min",mode:"shadowing",topic:"office meeting"},
+  {icon:"🔁",title:"Block 3 — Repeat After Me",sub:"Any topic • Pronunciation focus",time:"10 min",mode:"repeat",topic:""},
+  {icon:"👂",title:"Block 4 — Passive Listen",sub:"Relax • Listen Only • Let it flow",time:"10 min",mode:"listen",topic:""},
+];
+
+function renderPlan(){
+  const wrap=document.getElementById("planGrid");wrap.innerHTML="";
+  PLAN.forEach((p,i)=>{
+    const done=S.planDone&&S.planDone[dKey()]&&S.planDone[dKey()][i];
+    const d=document.createElement("div");
+    d.className="prow"+(done?" done-p":"");
+    d.innerHTML=`<div class="pi">${p.icon}</div>
+    <div class="pinfo"><div class="pt">${p.title}</div><div class="ps">${p.sub}</div></div>
+    <div class="ptime">${p.time}</div><div class="pck">${done?"✅":"○"}</div>`;
+    d.onclick=()=>{
+      currentMode=p.mode;
+      document.querySelectorAll(".mcard").forEach(c=>{c.classList.remove("on");if(c.dataset.m===p.mode)c.classList.add("on");});
+      if(p.topic)document.getElementById("topicInput").value=p.topic;
+      if(!S.planDone)S.planDone={};
+      if(!S.planDone[dKey()])S.planDone[dKey()]={};
+      S.planDone[dKey()][i]=true;saveS();renderPlan();
+      showTab("train");setTimeout(()=>generateAndPlay(),250);
+    };
+    wrap.appendChild(d);
+  });
+}
+
+/* ─── TABS ─── */
+function showTab(id){
+  const ids=["train","plan","progress","tips"];
+  document.querySelectorAll(".tab").forEach((t,i)=>t.classList.toggle("on",ids[i]===id));
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("on"));
+  document.getElementById("page-"+id).classList.add("on");
+  if(id==="plan"){renderPlan();renderWeek();}
+  if(id==="progress")renderStats();
+}
+
+/* ─── SETTINGS ─── */
+let GK=localStorage.getItem("gemini_key")||"";
+let currentMode="shadowing";
+let currentDiff="e";
+let delayMs=Number(localStorage.getItem("hd_ms")||15000);
+let selGram="random";
+
+if(GK)document.getElementById("apiKey").value=GK;
+
+function saveKey(){
+  const k=document.getElementById("apiKey").value.trim();
+  if(!k){setStatus("Enter key!");return;}
+  localStorage.setItem("gemini_key",k);GK=k;setStatus("Key saved ✅");
+}
+function setMode(el){
+  currentMode=el.dataset.m;
+  document.querySelectorAll(".mcard").forEach(c=>c.classList.remove("on"));
+  el.classList.add("on");
+}
+function setDiff(d,el){
+  currentDiff=d;
+  document.querySelectorAll(".dbtn").forEach(b=>b.classList.remove("on"));
+  el.classList.add("on");localStorage.setItem("pro_diff",d);
+}
+function initDelay(){
+  document.querySelectorAll(".dlybtn").forEach(b=>{
+    if(Number(b.dataset.ms)===delayMs)b.classList.add("on");
+    b.onclick=()=>{
+      delayMs=Number(b.dataset.ms);
+      localStorage.setItem("hd_ms",delayMs);
+      document.querySelectorAll(".dlybtn").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+    };
+  });
+}
+
+const gw=document.getElementById("gramPills");
+GRAM.forEach(g=>{
+  const p=document.createElement("button");
+  p.className="pill"+(g.v==="random"?" on":"");
+  p.textContent=g.l;
+  p.onclick=()=>{selGram=g.v;document.querySelectorAll(".pill").forEach(x=>x.classList.remove("on"));p.classList.add("on");};
+  gw.appendChild(p);
+});
+
+/* ─── PLAYBACK STATE ─── */
+let sessions=[],curSess=-1,sentences=[],playing=false,voices=[];
+const dispHi=document.getElementById("dispHi");
+const dispEn=document.getElementById("dispEn");
+const playBtn=document.getElementById("playBtn");
+const shadRow=document.getElementById("shadRow");
+const shadNum=document.getElementById("shadNum");
+const shadLbl=document.getElementById("shadLbl");
+const ptip=document.getElementById("ptip");
+const pbarFill=document.getElementById("pbarFill");
+const pbarLbl=document.getElementById("pbarLbl");
+
+const setStatus=m=>document.getElementById("statusPill").textContent=m;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const showLoad=(m,t)=>{document.getElementById("loadMsg").textContent=m;document.getElementById("loadTopic").textContent=t||"";document.getElementById("loadOverlay").classList.add("vis");};
+const hideLoad=()=>document.getElementById("loadOverlay").classList.remove("vis");
+
+function fade(el,txt){
+  return new Promise(r=>{el.classList.remove("vis");setTimeout(()=>{el.textContent=txt;el.classList.add("vis");r();},280);});
+}
+
+/* ─── SESSIONS ─── */
+function renderSessions(){
+  const card=document.getElementById("sessCard");
+  const strip=document.getElementById("sessStrip");
+  if(!sessions.length){card.style.display="none";return;}
+  card.style.display="block";
+  document.getElementById("sessInfo").textContent=sessions.length+" session"+(sessions.length>1?"s":"");
+  strip.innerHTML="";
+  sessions.forEach((_,i)=>{
+    const b=document.createElement("button");
+    b.className="sbtn"+(i===curSess?" act-s":i<curSess?" done-s":"");
+    b.textContent=i+1;b.onclick=()=>jumpSession(i);strip.appendChild(b);
+  });
+  strip.querySelector(".act-s")?.scrollIntoView({inline:"center",block:"nearest"});
+}
+function jumpSession(i){
+  if(i<0||i>=sessions.length)return;
+  stopPlay();curSess=i;sentences=sessions[i];
+  setPlayState(false);renderSessions();
+  setStatus("Session "+(i+1)+" · "+sentences.length+" lines");
+}
+
+/* ─── CONTROLS ─── */
+function setPlayState(p){
+  playing=p;
+  if(p){playBtn.innerHTML="⏸ PAUSE";playBtn.classList.add("paused");}
+  else{playBtn.innerHTML="▶ PLAY";playBtn.classList.remove("paused");}
+}
+function togglePlay(){
+  if(playing){stopPlay();setPlayState(false);}
+  else{if(sentences.length)startPlay(0);else generateAndPlay();}
+}
+function goPrev(){if(curSess>0)jumpSession(curSess-1);}
+function goNext(){
+  if(curSess<sessions.length-1){jumpSession(curSess+1);startPlay(0);}
+  else generateAndPlay();
+}
+function replaySession(){if(sentences.length){stopPlay();setTimeout(()=>startPlay(0),200);}}
+
+function stopPlay(){
+  playing=false;
+  try{speechSynthesis.cancel();}catch(e){}
+  hideLoad();shadRow.classList.remove("vis");ptip.classList.remove("vis");
+}
+
+/* ─── WAKE LOCK ─── */
+let wl=null;
+async function enableWL(){try{if(wl&&!wl.released)return;wl=await navigator.wakeLock.request("screen");}catch(e){}}
+const isMob=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden"&&isMob&&playing){stopPlay();setPlayState(false);setStatus("⏸ Paused");}
+  else if(document.visibilityState==="visible"&&playing)enableWL();
+});
+
+/* ─── VOICES ─── */
+function loadVoices(){voices=speechSynthesis.getVoices();}
+speechSynthesis.onvoiceschanged=loadVoices;
+function bestVoice(lang){
+  if(!voices.length)voices=speechSynthesis.getVoices();
+  return voices.find(v=>v.lang===lang)||voices.find(v=>v.lang.startsWith(lang.split("-")[0]))||null;
+}
+
+/* ─── PROMPT HELPERS ─── */
+function diffText(){
+  return{e:"EASY: Short 8–10 word sentences, A2 vocabulary, very common everyday phrases.",
+         m:"MEDIUM: Natural 10–14 word sentences, B1 level, include idioms and office phrases.",
+         h:"HARD: Complex 12–18 word sentences, B2 level, phrasal verbs, professional idioms."}[currentDiff];
+}
+function modeText(){
+  return{
+    shadowing:"SHADOWING MODE: Keep each English chunk SHORT and punchy — max 12 words. One clear thought per chunk.",
+    repeat:"REPEAT-AFTER-ME: Very short English chunks — 6–9 words. Crystal clear. Easy to repeat aloud.",
+    listen:"LISTEN MODE: Natural flowing sentences up to 16 words. Conversational and easy.",
+    reading:"READING MODE: Well-structured, can be up to 18 words. Clear grammar."
+  }[currentMode];
+}
+
+/* ─── AI GENERATION ─── */
+async function generateAndPlay(){
+  if(!GK){alert("Enter your Gemini API key first");return;}
+  stopPlay();
+  const topic=nextTopic();
+  showLoad("Generating your session…","📚 "+topic);
+  setStatus("Thinking…");
+  const gramPool=GRAM.filter(g=>g.v!=="random").map(g=>g.v);
+  const gram=selGram==="random"?rnd(gramPool):selGram;
+
+  const prompt=`You are an expert English speaking coach for intermediate Indian learners who understand English well but struggle to speak it naturally and confidently.
+
+SESSION CONFIG:
+- Topic: "${topic}"
+- Grammar focus: ${gram}
+- ${diffText()}
+- ${modeText()}
+
+LEARNER PROFILE:
+- Native language: Hindi
+- Level: Intermediate — understands English, struggles to speak fluently
+- Goal: Both daily life AND professional fluency
+- Practice time: 1 hour/day — committed learner
+
+HINDI REQUIREMENTS:
+- Natural, spoken, everyday Hindi — not formal, not textbook
+- Clean Devanagari script only. Punctuation: । . ? ! only
+- How a normal urban Indian would say it in conversation
+
+ENGLISH REQUIREMENTS (CRITICAL):
+- How educated native speakers ACTUALLY talk — not textbook grammar
+- Use contractions freely: I'm, you're, we'll, don't, can't, I'd, it's
+- Use natural filler phrases: honestly, actually, you know, I mean, so, anyway, look, right
+- Use connected speech chunks: "to be honest", "by the way", "at the end of the day", "I'll look into it", "make sense?"
+- Fix Indian English mistakes — never write: "do the needful", "revert back", "prepone", "out of station", "I am knowing"
+- SHORT punchy chunks — each one feels like ONE spoken moment the learner can practice
+- No formal written-style English — speak how real people talk
+
+TIPS (add "tip" field to 4–5 items):
+Short pronunciation or usage tip under 14 words. Examples:
+- "Stress 'definitely' on the second syllable: de-FIN-itely"
+- "Say 'gonna' naturally — not 'going to' in fast speech"  
+- "Chunk 'to be honest' as one fast unit, no pauses inside"
+- "Raise your voice slightly at end of questions"
+- "Link the words: 'get it' sounds like 'geddit' at speed"
+
+Generate exactly 20 pairs. Return ONLY valid JSON array, no other text:
+[{"hi":"...","en":"..."},{"hi":"...","en":"...","tip":"..."}]`;
+
+  for(let att=0;att<3;att++){
+    try{
+      const res=await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key="+GK,
+        {method:"POST",headers:{"Content-Type":"application/json"},
+         body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.85}})}
+      );
+      const data=await res.json();
+      if(!data.candidates)throw new Error("No candidates");
+      let raw=data.candidates[0].content.parts[0].text;
+      raw=raw.replace(/```json|```/g,"");
+      raw=raw.substring(raw.indexOf("["),raw.lastIndexOf("]")+1);
+      const parsed=JSON.parse(raw);
+      if(!Array.isArray(parsed)||parsed.length<5)throw new Error("Too few");
+      const clean=parsed.map(s=>({
+        hi:(s.hi||"").replace(/\*+([^*]+)\*+/g,"$1").replace(/_([^_]+)_/g,"$1").trim(),
+        en:(s.en||"").replace(/\*+([^*]+)\*+/g,"$1").replace(/_([^_]+)_/g,"$1").trim(),
+        tip:s.tip?(s.tip+"").replace(/\*+([^*]+)\*+/g,"$1").trim():null
+      })).filter(s=>s.hi&&s.en);
+
+      sessions.push(clean);curSess=sessions.length-1;sentences=clean;
+      S.sessTotal=(S.sessTotal||0)+1;saveS();updateStreak();renderStats();
+      hideLoad();setStatus("Session "+sessions.length+" · "+sentences.length+" lines · "+currentMode);
+      renderSessions();startPlay(0);return;
+    }catch(e){
+      console.warn("Att "+(att+1),e);
+      showLoad("Retry "+(att+1)+"/3…",topic);
+      await sleep(1800);
+    }
+  }
+  hideLoad();setStatus("❌ Failed — check API key");
+}
+
+/* ─── PLAYBACK ENGINE ─── */
+async function startPlay(from){
+  if(!sentences.length)return;
+  stopPlay();await sleep(150);
+  playing=true;setPlayState(true);await enableWL();
+  for(let i=from;i<sentences.length;i++){
+    if(!playing)return;
+    pbarFill.style.width=(i/Math.max(sentences.length-1,1)*100)+"%";
+    pbarLbl.textContent=i+"/"+sentences.length;
+    await showSentence(sentences[i]);
+    if(!playing)return;
+  }
+  pbarFill.style.width="100%";pbarLbl.textContent=sentences.length+"/"+sentences.length;
+  addXP(20);renderSessions();
+  if(playing){setStatus("Loading next session…");await sleep(2200);if(playing)generateAndPlay();}
+  else{setPlayState(false);setStatus("Session "+(curSess+1)+" done ✅");}
+}
+
+async function showSentence(s){
+  dispEn.classList.remove("vis");dispEn.textContent="";
+  ptip.classList.remove("vis");shadRow.classList.remove("vis");
+  await fade(dispHi,s.hi);
+  if(!playing)return;
+
+  if(currentMode==="reading"){
+    await sleep(700);await fade(dispEn,s.en);
+    if(s.tip){ptip.textContent="💡 "+s.tip;ptip.classList.add("vis");}
+    await sleep(3500);ptip.classList.remove("vis");
+    countSent();return;
+  }
+
+  await speak(s.hi,"hi-IN",0.88);
+  if(!playing)return;
+
+  if(currentMode==="shadowing"){
+    shadLbl.textContent="Say it in English! 🎤";
+    shadRow.classList.add("vis");
+    await countdown(Math.round(delayMs/1000));
+    if(!playing)return;
+    shadRow.classList.remove("vis");
+    await fade(dispEn,"✅  "+s.en);
+    if(s.tip){ptip.textContent="💡 "+s.tip;ptip.classList.add("vis");}
+    await speak(s.en,"en-US",0.92);
+    if(!playing)return;
+    await sleep(900);ptip.classList.remove("vis");
+
+  }else if(currentMode==="listen"){
+    await sleep(delayMs);if(!playing)return;
+    await fade(dispEn,s.en);
+    if(s.tip){ptip.textContent="💡 "+s.tip;ptip.classList.add("vis");}
+    await speak(s.en,"en-US",0.92);
+    if(!playing)return;
+    await sleep(1400);ptip.classList.remove("vis");
+
+  }else if(currentMode==="repeat"){
+    await sleep(1100);if(!playing)return;
+    await fade(dispEn,s.en);
+    if(s.tip){ptip.textContent="💡 "+s.tip;ptip.classList.add("vis");}
+    await speak(s.en,"en-US",0.87);
+    if(!playing)return;
+    shadLbl.textContent="Now you say it! 🗣️";
+    shadRow.classList.add("vis");
+    await countdown(8);
+    shadRow.classList.remove("vis");ptip.classList.remove("vis");
+    if(!playing)return;
+  }
+  countSent();
+}
+
+function countSent(){
+  S.sentTotal=(S.sentTotal||0)+1;saveS();
+  addXP(10);checkMilestone();renderStats();
+}
+
+function countdown(secs){
+  return new Promise(res=>{
+    let r=secs;shadNum.textContent=r;
+    const iv=setInterval(()=>{r--;shadNum.textContent=Math.max(r,0);if(r<=0){clearInterval(iv);res();}},1000);
+    const ck=setInterval(()=>{if(!playing){clearInterval(iv);clearInterval(ck);res();}},200);
+  });
+}
+
+function speak(text,lang,rate){
+  return new Promise(res=>{
+    if(!playing){res();return;}
+    speechSynthesis.cancel();
+    setTimeout(()=>{
+      if(!playing){res();return;}
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang=lang;u.rate=rate||0.9;
+      const v=bestVoice(lang);if(v)u.voice=v;
+      let done=false;
+      const fin=()=>{if(!done){done=true;clearTimeout(wd);res();}};
+      const wd=setTimeout(()=>{speechSynthesis.cancel();fin();},Math.max(text.split(" ").length*680,3200)+2000);
+      u.onend=fin;u.onerror=fin;
+      speechSynthesis.speak(u);
+    },160);
+  });
+}
+
+/* ─── INIT ─── */
+window.onload=()=>{
+  loadVoices();initDelay();updateStreak();renderStats();renderWeek();
+  const sd=localStorage.getItem("pro_diff")||"e";
+  currentDiff=sd;
+  document.querySelectorAll(".dbtn").forEach(b=>b.classList.toggle("on",b.classList.contains(sd)));
+};
+</script>
+</body>
+</html>
