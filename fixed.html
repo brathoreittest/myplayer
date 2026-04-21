@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SubTrainer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Devanagari:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0f;
+  --surface:#13131a;
+  --surface2:#1c1c28;
+  --border:#2a2a3d;
+  --accent:#ff3c5f;
+  --accent2:#7c5cff;
+  --text:#f0f0f8;
+  --muted:#6b6b8a;
+  --radius:14px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  overflow-x:hidden;
+  overscroll-behavior:none;
+}
+
+/* ── HEADER ── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 16px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+  position:sticky;top:0;z-index:50;
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.status-pill{
+  font-size:11px;font-weight:600;letter-spacing:.4px;
+  padding:5px 11px;border-radius:20px;
+  background:var(--surface2);color:var(--muted);
+  border:1px solid var(--border);
+  max-width:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* ── SCROLL BODY ── */
+.scroll-body{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:14px 14px calc(240px + var(--safe-bottom));
+}
+
+/* ── CARD ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:12px;
+}
+.card-label{
+  font-size:10px;font-weight:600;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* ── INPUT ROW ── */
+.input-row{display:flex;gap:8px;align-items:center;}
+input[type=password],
+input[type=text]{
+  flex:1;padding:13px 14px;font-size:15px;
+  border:1px solid var(--border);border-radius:10px;
+  background:var(--surface2);color:var(--text);
+  font-family:inherit;outline:none;
+  -webkit-appearance:none;appearance:none;
+}
+input[type=password]:focus,
+input[type=text]:focus{border-color:var(--accent2);}
+
+.icon-btn{
+  width:50px;height:50px;border:none;border-radius:10px;
+  background:var(--accent2);color:#fff;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+}
+.icon-btn:active{opacity:.8;}
+
+/* ── GRAMMAR PILLS ── */
+.grammar-wrap{
+  display:flex;flex-wrap:wrap;gap:7px;margin-top:2px;
+}
+.g-pill{
+  padding:6px 13px;border-radius:20px;
+  border:1px solid var(--border);
+  background:var(--surface2);color:var(--muted);
+  font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .18s;
+  -webkit-user-select:none;user-select:none;
+}
+.g-pill.active{
+  background:var(--accent2);border-color:var(--accent2);color:#fff;
+}
+.g-pill:active{opacity:.7;}
+
+/* ── DELAY BUTTONS ── */
+.delay-wrap{
+  display:flex;gap:9px;margin-top:2px;
+}
+.delay-btn{
+  flex:1;height:44px;border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--surface2);color:var(--muted);
+  font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .18s;
+  -webkit-user-select:none;user-select:none;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.delay-btn.active{
+  background:linear-gradient(135deg,var(--accent) 0%,#c0003a 100%);
+  border-color:var(--accent);color:#fff;
+  box-shadow:0 3px 14px rgba(255,60,95,.3);
+}
+.delay-btn:active{opacity:.7;}
+.delay-btn .d-label{font-size:11px;opacity:.75;font-weight:500;}
+
+/* ── SESSION STRIP ── */
+.session-wrap{overflow:hidden;}
+.session-strip{
+  display:flex;gap:7px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  padding:2px 0 4px;scrollbar-width:none;
+}
+.session-strip::-webkit-scrollbar{display:none;}
+.s-btn{
+  flex:0 0 auto;min-width:46px;height:38px;
+  border:1px solid var(--border);border-radius:8px;
+  background:var(--surface2);color:var(--muted);
+  font-size:13px;font-weight:600;cursor:pointer;
+}
+.s-btn.done{background:#152015;border-color:#2a452a;color:#5a9a5a;}
+.s-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.s-btn:active{opacity:.7;}
+
+/* ── BOTTOM BAR ── */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  padding-bottom:var(--safe-bottom);
+}
+
+/* Progress */
+.progress-bar{height:3px;background:var(--surface2);}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .5s ease;width:0%;
+}
+
+/* Subtitle */
+.sub-area{
+  padding:14px 18px 10px;
+  min-height:106px;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  text-align:center;
+}
+.sub-hi{
+  font-family:'Noto Sans Devanagari',sans-serif;
+  font-size:23px;font-weight:600;line-height:1.5;
+  color:#fff;opacity:0;transition:opacity .35s ease;min-height:34px;
+}
+.sub-en{
+  font-size:15px;line-height:1.5;
+  color:#9090b8;margin-top:6px;
+  opacity:0;transition:opacity .35s ease;min-height:22px;
+}
+.sub-hi.show,.sub-en.show{opacity:1;}
+
+/* Controls */
+.ctrl-row{
+  display:flex;align-items:center;gap:9px;
+  padding:10px 14px 12px;
+}
+.nav-btn{
+  width:52px;height:52px;
+  border:1px solid var(--border);border-radius:13px;
+  background:var(--surface2);color:var(--text);
+  font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nav-btn:active{background:var(--border);}
+
+.play-btn{
+  flex:1;height:52px;border:none;border-radius:13px;
+  background:linear-gradient(135deg,var(--accent) 0%,#c0003a 100%);
+  color:#fff;font-family:'Bebas Neue',sans-serif;
+  font-size:23px;letter-spacing:2.5px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 22px rgba(255,60,95,.28);
+  transition:opacity .15s;
+}
+.play-btn:active{opacity:.82;}
+.play-btn.paused{
+  background:linear-gradient(135deg,var(--accent2) 0%,#4a2acc 100%);
+  box-shadow:0 4px 22px rgba(124,92,255,.28);
+}
+
+/* ── LOADING OVERLAY ── */
+.loading{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(10,10,15,.88);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.loading.show{display:flex;}
+.spinner{
+  width:46px;height:46px;border-radius:50%;
+  border:3px solid var(--border);border-top-color:var(--accent);
+  animation:spin .75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg{font-size:15px;color:var(--muted);letter-spacing:.3px;}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loadingText">Processing…</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">SubTrainer</div>
+  <div class="status-pill" id="statusPill">Ready</div>
+</div>
+
+<!-- SCROLLABLE AREA -->
+<div class="scroll-body">
+
+  <!-- API KEY -->
+  <div class="card">
+    <div class="card-label">Gemini API Key</div>
+    <div class="input-row">
+      <input type="password" id="apiKeyInput" placeholder="Paste your Gemini key…">
+      <button class="icon-btn" id="saveKeyBtn">💾</button>
+    </div>
+  </div>
+
+  <!-- TOPIC -->
+  <div class="card">
+    <div class="card-label">Topic (optional)</div>
+    <div class="input-row">
+      <input type="text" id="topicInput" placeholder="e.g. market, travel, family…">
+    </div>
+  </div>
+
+  <!-- DELAY SELECTOR -->
+  <div class="card">
+    <div class="card-label">Hindi → English Delay</div>
+    <div class="delay-wrap" id="delayButtons">
+      <button class="delay-btn" data-ms="15000">15s</button>
+      <button class="delay-btn" data-ms="20000">20s</button>
+      <button class="delay-btn" data-ms="25000">25s</button>
+    </div>
+  </div>
+
+  <!-- GRAMMAR FOCUS -->
+  <div class="card">
+    <div class="card-label">Grammar Focus</div>
+    <div class="grammar-wrap" id="grammarPills"></div>
+  </div>
+
+  <!-- SESSION HISTORY (hidden until first generation) -->
+  <div class="card" id="sessionCard" style="display:none">
+    <div class="card-label">Sessions &mdash; <span id="sessionInfo"></span></div>
+    <div class="session-strip" id="sessionButtons"></div>
+  </div>
+
+</div><!-- /scroll-body -->
+
+<!-- FIXED BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="sub-area">
+    <div class="sub-hi" id="hindi"></div>
+    <div class="sub-en" id="english"></div>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="nav-btn" id="prev" title="Previous session">◀</button>
+    <button class="play-btn" id="toggle">▶ &nbsp;PLAY</button>
+    <button class="nav-btn" id="next" title="Next / New session">▶▶</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════ CONFIG ══════════════════════════════ */
+const GRAMMAR_TOPICS = [
+  { label:"Random",    hi:"यादृच्छिक",  val:"random" },
+  { label:"Noun",      hi:"संज्ञा",     val:"संज्ञा (Noun)" },
+  { label:"Pronoun",   hi:"सर्वनाम",   val:"सर्वनाम (Pronoun)" },
+  { label:"Verb",      hi:"क्रिया",    val:"क्रिया (Verb)" },
+  { label:"Adjective", hi:"विशेषण",    val:"विशेषण (Adjective)" },
+  { label:"Adverb",    hi:"क्रिया विशेषण", val:"क्रिया विशेषण (Adverb)" },
+  { label:"Postpos.",  hi:"संबंधबोधक", val:"संबंधबोधक (Postposition)" },
+  { label:"Conj.",     hi:"समुच्चयबोधक",val:"समुच्चयबोधक (Conjunction)" },
+  { label:"Interj.",   hi:"विस्मयादिबोधक",val:"विस्मयादिबोधक (Interjection)" },
+  { label:"All Mixed",     hi:"मिश्रित",        val:"all (mixed)" },
+  { label:"Tense",         hi:"काल",           val:"काल (Tense)" },
+  { label:"Present",       hi:"वर्तमान काल",   val:"Present Tense" },
+  { label:"Past",          hi:"भूतकाल",        val:"Past Tense" },
+  { label:"Future",        hi:"भविष्य काल",    val:"Future Tense" },
+  { label:"Sentence",      hi:"वाक्य",         val:"Sentence" },
+  { label:"Simple Sent.",  hi:"सरल वाक्य",     val:"Simple Sentence" },
+  { label:"Compound",      hi:"संयुक्त वाक्य",  val:"Compound Sentence" },
+  { label:"Complex",       hi:"मिश्र वाक्य",    val:"Complex Sentence" },
+  { label:"Question",      hi:"प्रश्नवाचक",     val:"Interrogative" },
+  { label:"Negative",      hi:"नकारात्मक",     val:"Negative Sentence" },
+  { label:"Imperative",    hi:"आज्ञार्थक",     val:"Imperative" },
+  { label:"Exclamatory",   hi:"विस्मयादिबोधक वाक्य", val:"Exclamatory Sentence" },
+  { label:"Modal Verbs",   hi:"सहायक क्रिया",   val:"Modal Verbs" },
+  { label:"Preposition",   hi:"पूर्वसर्ग",      val:"Preposition" },
+  { label:"Articles",      hi:"आर्टिकल",       val:"Articles (a, an, the)" },
+  { label:"Daily Use",     hi:"दैनिक उपयोग",    val:"Daily Conversation" },
+  { label:"Office Talk",   hi:"ऑफिस बातचीत",   val:"Office Conversation" },
+  { label:"Casual Talk",   hi:"सामान्य बातचीत", val:"Casual Conversation" },
+  { label:"Story Mode",    hi:"कहानी",         val:"Story" },
+  { label:"Dialogue",      hi:"संवाद",         val:"Dialogue" },
+  { label:"Practice",      hi:"अभ्यास",        val:"Practice Sentences" },
+];
+
+const ORDERED_TOPICS = [
+  "Operating Systems","Windows Administration","Linux Basics","Command Line / Terminal",
+  "System Troubleshooting","Error Messages & Logs","Monitoring & Alerts","Incident Management",
+  "Change Management","Patch Management","User Support Conversations","Helpdesk Scenarios",
+  "Ticket Handling","Escalation Situations","Remote Support","On-call Scenarios",
+  "Email & Communication at Work","Meetings & Standups","Daily Status Updates","Client Communication",
+  "Explaining Technical Issues Simply","Giving Instructions to Users","Server Management",
+  "Virtual Machines","Containers & Docker","Kubernetes Basics","Load Balancing","High Availability",
+  "Disaster Recovery","Backup & Restore","Network Troubleshooting","DNS & DHCP",
+  "Firewalls & Security Groups","VPN & Remote Access","Bandwidth & Latency",
+  "Cloud Platforms (AWS/Azure/GCP)","Cloud Costs & Billing","Deployment & Releases",
+  "CI/CD Pipelines","Automation & Scripting","PowerShell Conversations","Shell Scripting",
+  "Access Issues","Password Reset Scenarios","Permissions & Roles","Identity & MFA",
+  "Security Incidents","Phishing & Email Threats","Endpoint Security","Vulnerability & Patching",
+  "Compliance & Policies","Database Queries","SQL Conversations","Performance Issues",
+  "Data Backup Issues","Working with Vendors","Talking to Managers","Explaining Delays",
+  "Handling Pressure at Work","Asking for Help Professionally","Small Talk in Office",
+  "Talking About Weekend","Talking About Workload","Complaining Politely","Giving Feedback",
+  "Time Management","Task Prioritization","Deadlines & Delivery","Project Discussions",
+  "Learning New Technology","Self-Study Conversations","Explaining What You Learned",
+  "Career Growth Discussions","Salary & Appraisal Talks","Talking to HR",
+  "Interview Preparation","Explaining Experience","Starting a Meeting","Joining a Meeting Late",
+  "Ending a Meeting Politely","Setting the Agenda","Changing the Agenda",
+  "Time Management in Meetings","Sharing Your Opinion","Agreeing Politely","Disagreeing Politely",
+  "Interrupting Politely","Asking Someone to Repeat","Asking for Clarification",
+  "Giving Suggestions","Giving Examples","Giving Project Updates","Explaining a Delay",
+  "Explaining a Problem","Explaining a Solution","Summarizing Discussion","Highlighting Key Points",
+  "Asking Questions in Meetings","Answering Questions Clearly","Handling Difficult Questions",
+  "Deflecting a Question Politely","Buying Time to Answer","Asking for Help in a Meeting",
+  "Offering Help","Assigning Tasks","Accepting Responsibility","Following Up on Tasks",
+  "Checking Progress","Talking to Manager in a Meeting","Talking to Client in a Meeting",
+  "Handling Pressure in Meetings","Handling Criticism","Giving Feedback Politely",
+  "Making Decisions","Delaying a Decision","Reaching Consensus","Proposing an Idea",
+  "Rejecting an Idea Politely","Technical Issue Discussion","Production Issue Call",
+  "Incident Bridge Call","Daily Standup Meeting","Sprint Planning Meeting","Retrospective Meeting",
+  "Speaking Confidently","Speaking Clearly and Simply","Avoiding Confusion","Being Brief and Direct",
+  "Using Soft and Polite Language","Handling Silence in Meetings",
+  "Bringing Conversation Back on Track","Stopping Someone Politely",
+  "Dealing with Over-Talkative People","Handling Misunderstanding","Correcting Someone Politely",
+  "Asking Someone to Speed Up","Asking Someone to Slow Down","Introducing Yourself in a Meeting",
+  "Introducing Others","Welcoming Participants","Starting with Small Talk",
+  "Icebreakers in Meetings","Transitioning Between Topics","Summarizing Before Moving On",
+  "Asking for Opinions from Quiet Participants","Encouraging Participation",
+  "Handling Conflicting Opinions","Managing Overlapping Speakers","Asking Someone to Elaborate",
+  "Clarifying Ambiguous Points","Confirming Understanding","Restating Key Points",
+  "Checking Action Items","Assigning Deadlines","Asking for Updates on Past Action Items",
+  "Recording Meeting Minutes","Closing a Meeting Politely","Scheduling the Next Meeting",
+  "Sharing Meeting Documents","Asking for Feedback on the Meeting",
+  "Giving Feedback on Others' Ideas","Acknowledging Contributions","Handling Interruptions Gracefully",
+  "Dealing with Technical Problems (Audio/Video Issues)","Handling Late Participants",
+  "Politely Requesting People to Mute","Encouraging Remote Participants to Speak",
+  "Dealing with Side Conversations","Handling Miscommunication","Summarizing Complex Discussions",
+  "Bringing Back Off-Topic Discussions","Concluding a Difficult Topic","Making Quick Decisions",
+  "Seeking Consensus Quickly","Handling Pushback on Decisions","Negotiating Deadlines",
+  "Prioritizing Tasks in a Meeting","Asking for Opinions on Project Priorities",
+  "Handling Urgent Issues During a Meeting","Managing Time Effectively",
+  "Keeping Discussions Productive","Handling Repetitive Questions",
+  "Polite Ways to Decline a Suggestion","Encouraging Innovative Ideas","Sharing Lessons Learned",
+  "Discussing Risks and Mitigations","Talking About Dependencies",
+  "Explaining Technical Jargon Simply","Checking Everyone is on the Same Page",
+  "Asking for Confirmation","Confirming Agreements","Ending on a Positive Note",
+  "Thanking Participants","Ending Friendly Note"
+];
+
+let topicIndex = Number(localStorage.getItem("topic_index") || 0) % ORDERED_TOPICS.length;
+
+function nextTopic() {
+  const custom = topicInput.value.trim();
+  if (custom) return custom;
+  const t = ORDERED_TOPICS[topicIndex];
+  topicIndex = (topicIndex + 1) % ORDERED_TOPICS.length;
+  localStorage.setItem("topic_index", topicIndex);
+  return t;
+}
+
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ═══════════════════════════════ DELAY STATE ═════════════════════════ */
+// delayMs: time between Hindi speech ending and English appearing
+// Persisted in localStorage, defaults to 15000
+let delayMs = Number(localStorage.getItem("hindi_delay_ms") || 15000);
+
+function initDelayButtons() {
+  const btns = document.querySelectorAll(".delay-btn");
+  btns.forEach(btn => {
+    const ms = Number(btn.dataset.ms);
+    if (ms === delayMs) btn.classList.add("active");
+    btn.onclick = () => {
+      delayMs = ms;
+      localStorage.setItem("hindi_delay_ms", ms);
+      btns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    };
+  });
+}
+
+/* ═══════════════════════════════ STATE ══════════════════════════════ */
+let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
+let selectedGrammar = "random";
+let sessions = [];
+let currentSession = -1;
+let sentences = [];
+let playing = false;
+let speakAborted = false;
+let voices = [];
+
+const apiInput     = document.getElementById("apiKeyInput");
+const topicInput   = document.getElementById("topicInput");
+const hindiBox     = document.getElementById("hindi");
+const englishBox   = document.getElementById("english");
+const toggleBtn    = document.getElementById("toggle");
+const statusPill   = document.getElementById("statusPill");
+const loadingDiv   = document.getElementById("loading");
+const loadingTxt   = document.getElementById("loadingText");
+const progressFill = document.getElementById("progressFill");
+
+if (GEMINI_KEY) apiInput.value = GEMINI_KEY;
+
+/* ═══════════════════════════════ UTILS ══════════════════════════════ */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const setStatus = msg => { statusPill.textContent = msg; };
+const showLoading = msg => { loadingTxt.textContent = msg; loadingDiv.classList.add("show"); };
+const hideLoading = () => { loadingDiv.classList.remove("show"); };
+const setProgress = frac => { progressFill.style.width = Math.min(Math.max(frac, 0), 1) * 100 + "%"; };
+
+function fade(el, text) {
+  return new Promise(r => {
+    el.classList.remove("show");
+    setTimeout(() => { el.textContent = text; el.classList.add("show"); r(); }, 260);
+  });
+}
+
+/* ═══════════════════════════════ API KEY ════════════════════════════ */
+document.getElementById("saveKeyBtn").onclick = () => {
+  const k = apiInput.value.trim();
+  if (!k) { setStatus("Enter key!"); return; }
+  localStorage.setItem("gemini_key", k);
+  GEMINI_KEY = k;
+  setStatus("Key saved ✅");
+};
+
+/* ═══════════════════════════════ GRAMMAR PILLS ══════════════════════ */
+const pillWrap = document.getElementById("grammarPills");
+GRAMMAR_TOPICS.forEach(g => {
+  const p = document.createElement("button");
+  p.className = "g-pill" + (g.val === "random" ? " active" : "");
+  p.textContent = g.label;
+  p.title = g.hi;
+  p.onclick = () => {
+    selectedGrammar = g.val;
+    document.querySelectorAll(".g-pill").forEach(x => x.classList.remove("active"));
+    p.classList.add("active");
+  };
+  pillWrap.appendChild(p);
+});
+
+/* ═══════════════════════════════ WAKE LOCK ═══════════════════════════ */
+let wakeLock = null;
+async function enableWakeLock() {
+  try {
+    if (wakeLock && !wakeLock.released) return;
+    wakeLock = await navigator.wakeLock.request('screen');
+  } catch(e) {}
+}
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    if (isMobile && playing) {
+      stopPlayback(); setPlayState(false); setStatus("⏸ Paused — tab hidden");
+    }
+  } else {
+    if (playing) enableWakeLock();
+  }
+});
+
+/* ═══════════════════════════════ SESSION STRIP ══════════════════════ */
+function renderSessions() {
+  const card = document.getElementById("sessionCard");
+  const strip = document.getElementById("sessionButtons");
+  if (!sessions.length) { card.style.display = "none"; return; }
+  card.style.display = "block";
+  document.getElementById("sessionInfo").textContent = sessions.length + " session" + (sessions.length > 1 ? "s" : "");
+  strip.innerHTML = "";
+  sessions.forEach((_, i) => {
+    const b = document.createElement("button");
+    b.className = "s-btn" + (i === currentSession ? " active" : i < currentSession ? " done" : "");
+    b.textContent = i + 1;
+    b.onclick = () => jumpSession(i);
+    strip.appendChild(b);
+  });
+  const active = strip.querySelector(".active");
+  if (active) active.scrollIntoView({ inline: "center", block: "nearest" });
+  setProgress(currentSession / Math.max(sessions.length - 1, 1));
+}
+
+function jumpSession(i) {
+  if (i < 0 || i >= sessions.length) return;
+  stopPlayback();
+  currentSession = i;
+  sentences = sessions[i];
+  setPlayState(false);
+  renderSessions();
+  setStatus("Session " + (i + 1) + " · " + sentences.length + " lines");
+}
+
+/* ═══════════════════════════════ CONTROLS ═══════════════════════════ */
+function setPlayState(isPlaying) {
+  playing = isPlaying;
+  if (isPlaying) {
+    toggleBtn.innerHTML = "⏸ &nbsp;PAUSE";
+    toggleBtn.classList.add("paused");
+  } else {
+    toggleBtn.innerHTML = "▶ &nbsp;PLAY";
+    toggleBtn.classList.remove("paused");
+  }
+}
+
+toggleBtn.onclick = () => {
+  if (playing) {
+    stopPlayback(); setPlayState(false);
+  } else {
+    if (sentences.length) startPlayback(0);
+    else generateAndPlay();
+  }
+};
+
+document.getElementById("prev").onclick = () => {
+  if (currentSession > 0) jumpSession(currentSession - 1);
+};
+
+document.getElementById("next").onclick = () => {
+  if (currentSession < sessions.length - 1) {
+    jumpSession(currentSession + 1);
+    startPlayback(0);
+  } else {
+    generateAndPlay();
+  }
+};
+
+function stopPlayback() {
+  speakAborted = true; playing = false;
+  try { speechSynthesis.cancel(); } catch(e) {}
+  hideLoading();
+}
+
+/* ═══════════════════════════════ VOICES ═════════════════════════════ */
+function preloadVoices() { voices = speechSynthesis.getVoices(); }
+speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); };
+
+function getBestVoice(lang) {
+  if (!voices.length) voices = speechSynthesis.getVoices();
+  return voices.find(v => v.lang === lang)
+      || voices.find(v => v.lang.startsWith(lang.split("-")[0]))
+      || null;
+}
+
+/* ═══════════════════════════════ AI ════════════════════════════════ */
+async function generateAndPlay() {
+  if (!GEMINI_KEY) { alert("Enter Gemini API key first"); return; }
+
+  stopPlayback();
+  showLoading("Generating Hindi content…");
+  setStatus("Thinking…");
+
+  const topic = nextTopic();
+  const grammarPool = GRAMMAR_TOPICS.filter(g => g.val !== "random").map(g => g.val);
+  const grammar = selectedGrammar === "random" ? pickRandom(grammarPool) : selectedGrammar;
+  const topicLine = `The paragraph should be about the theme: "${topic}".`;
+
+  const prompt = `Write a simple Hindi paragraph (300–400 words) in very easy, everyday spoken Hindi.
+${topicLine}
+Keep the language natural and conversational, not formal or bookish.
+
+IMPORTANT FOR ENGLISH:
+- Common idiomatic phrases or 'filler' expressions (e.g., 'at the end of the day', 'more often than not', 'as far as I'm concerned').
+- Translate each Hindi line into very natural, casual American English spoken in real life.
+- DO NOT translate literally. Make it sound like how people actually talk.
+
+NATIVE SPEECH STYLE (VERY IMPORTANT):
+- Break thoughts into short chunks, not long perfect sentences
+- It's OK to use fragments (e.g., "Not perfect.", "No big deal.", "That's the goal.")
+- Use pauses and flow like real speech
+- Add conversational connectors (like: "I mean", "you know", "honestly", "so", "anyway")
+- Include 1–2 casual questions where natural (e.g., "right?", "you know what I mean?")
+- Allow slight repetition for natural emphasis (e.g., "keep going. just keep going.")
+
+CRITICAL RULES:
+- Absolutely no markdown. No asterisks (*), no bold (**word**), no underscores, no special symbols. Plain text only.
+- Hindi sentences: clean Devanagari script, normal punctuation only (। or . or ? or !).
+- English lines should feel like real spoken chunks, not formal written sentences
+
+OUTPUT STRUCTURE:
+- Break into small, natural chunks (not strict full sentences)
+- Each item should feel like one spoken unit
+
+Return a JSON array where each item has:
+"hi": Hindi chunk
+"en": natural spoken English chunk
+
+Output format:
+[{"hi":"...","en":"..."},{"hi":"...","en":"..."}]
+
+Return ONLY valid JSON. No explanations, no headings, no extra text.`;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + GEMINI_KEY,
+        { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) }
+      );
+      const data = await res.json();
+      if (!data.candidates) throw new Error("No candidates: " + JSON.stringify(data));
+      let raw = data.candidates[0].content.parts[0].text;
+      raw = raw.replace(/```json|```/g, "");
+      raw = raw.substring(raw.indexOf("["), raw.lastIndexOf("]") + 1);
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed) || parsed.length < 3) throw new Error("Bad split");
+
+      const clean = parsed.map(s => ({
+        hi: s.hi.replace(/\*{1,3}([^*]+)\*{1,3}/g,"$1").replace(/_([^_]+)_/g,"$1").trim(),
+        en: s.en.replace(/\*{1,3}([^*]+)\*{1,3}/g,"$1").replace(/_([^_]+)_/g,"$1").trim()
+      }));
+
+      sessions.push(clean);
+      currentSession = sessions.length - 1;
+      sentences = clean;
+
+      hideLoading();
+      setStatus("Session " + sessions.length + " · " + sentences.length + " lines");
+      renderSessions();
+      startPlayback(0);
+      return;
+    } catch(e) {
+      console.warn("Attempt " + (attempt + 1) + " failed:", e);
+      showLoading("Retry " + (attempt + 1) + "/3…");
+      await sleep(1600);
+    }
+  }
+  hideLoading();
+  setStatus("❌ AI failed — check key/network");
+}
+
+/* ═══════════════════════════════ PLAYBACK ═══════════════════════════ */
+async function startPlayback(startIndex) {
+  if (!sentences.length) return;
+  stopPlayback();
+  await sleep(130);
+  playing = true; speakAborted = false;
+  setPlayState(true);
+  await enableWakeLock();
+
+  for (let i = startIndex; i < sentences.length; i++) {
+    if (!playing) return;
+    setProgress(i / Math.max(sentences.length - 1, 1));
+    await showSentence(sentences[i], i);
+    if (!playing) return;
+  }
+
+  setProgress(1);
+  renderSessions();
+  if (playing) {
+    setStatus("Next session incoming…");
+    await sleep(1800);
+    if (playing) generateAndPlay();
+  } else {
+    setPlayState(false);
+    setStatus("Session " + (currentSession + 1) + " done ✅");
+  }
+}
+
+async function showSentence(s, index) {
+  await fade(hindiBox, s.hi);
+  if (!playing) return;
+  await speakText(s.hi, "hi-IN");
+  if (!playing) return;
+
+  // ── FIXED DELAY between Hindi speech and English reveal ──
+  // Uses delayMs (15s / 20s / 25s), set by the delay buttons above
+  await sleep(delayMs);
+  if (!playing) return;
+
+  await fade(englishBox, s.en);
+  if (!playing) return;
+  await speakText(s.en, "en-US");
+  if (!playing) return;
+
+  await sleep(2500);
+}
+
+/* ═══════════════════════════════ SPEECH (Android safe) ══════════════ */
+function speakText(text, lang) {
+  return new Promise(resolve => {
+    if (!playing) { resolve(); return; }
+    speechSynthesis.cancel();
+
+    setTimeout(() => {
+      if (!playing) { resolve(); return; }
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = 0.9;
+      const v = getBestVoice(lang);
+      if (v) u.voice = v;
+
+      let done = false;
+      const finish = () => { if (!done) { done = true; clearTimeout(wd); resolve(); } };
+
+      const words = text.split(" ").length;
+      const wd = setTimeout(() => {
+        speechSynthesis.cancel(); finish();
+      }, Math.max(words * 660, 3500) + 2000);
+
+      u.onend   = finish;
+      u.onerror = finish;
+      speechSynthesis.speak(u);
+    }, 160);
+  });
+}
+
+/* ═══════════════════════════════ INIT ══════════════════════════════ */
+window.onload = () => {
+  preloadVoices();
+  initDelayButtons();
+};
+</script>
+</body>
+</html>
