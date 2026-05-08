@@ -745,18 +745,34 @@ async function generateAndPlay() {
     : selectedGrammar;
 
   const prompt = `Generate exactly 15 short spoken English practice questions for the topic: "${topic}".
-Style/focus: ${category}.
+Category/focus: ${category}.
+
+Context:
+Questions should mainly relate to:
+- Daily home routine
+- Office conversations
+- Meetings and work situations
+- Family discussions
+- Neighbourhood and shopping conversations
+- Travel and transport
+- Casual everyday speaking
 
 Rules:
-- Each question must be short (max 12 words), natural, conversational, and easy to answer out loud in English.
-- Questions should test everyday spoken English — things someone would actually say or be asked at work or daily life.
-- Vary question types: opinion, experience, how-would-you, what-would-you, yes/no followup, describe, explain.
-- No markdown, no asterisks, no numbering, plain text only.
-- Return ONLY a valid JSON array of 15 strings. No preamble, no explanation.
+- Each question must be natural, conversational, and easy to answer aloud.
+- Maximum 12 words per question.
+- Use simple spoken English used in real life.
+- Questions should sound like real conversations at home, office, or nearby places.
+- Include different styles:
+  opinion, experience, daily routine, what-would-you-do, yes/no follow-up, explain, describe.
+- Avoid textbook-style grammar questions.
+- Avoid difficult vocabulary.
+- Make questions useful for improving speaking confidence and fluency.
+- No markdown, no numbering, no bullet points.
+- Return ONLY a valid JSON array of exactly 15 strings.
 
 Example format:
-["How would you explain this issue to your manager?","What do you usually say when you're running late?"]`;
-
+["What do you usually cook for breakfast?","How do you update your manager during meetings?"]`;
+  
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(
