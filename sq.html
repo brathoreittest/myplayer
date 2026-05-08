@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SubTrainer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0f;
+  --surface:#13131a;
+  --surface2:#1c1c28;
+  --border:#2a2a3d;
+  --accent:#ff3c5f;
+  --accent2:#7c5cff;
+  --green:#3ecf6e;
+  --text:#f0f0f8;
+  --muted:#6b6b8a;
+  --radius:14px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  overflow-x:hidden;
+  overscroll-behavior:none;
+}
+
+/* ── HEADER ── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 16px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+  position:sticky;top:0;z-index:50;
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.status-pill{
+  font-size:11px;font-weight:600;letter-spacing:.4px;
+  padding:5px 11px;border-radius:20px;
+  background:var(--surface2);color:var(--muted);
+  border:1px solid var(--border);
+  max-width:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* ── SCROLL BODY ── */
+.scroll-body{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:14px 14px calc(280px + var(--safe-bottom));
+}
+
+/* ── CARD ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:12px;
+}
+.card-label{
+  font-size:10px;font-weight:600;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* ── INPUT ROW ── */
+.input-row{display:flex;gap:8px;align-items:center;}
+input[type=password],
+input[type=text]{
+  flex:1;padding:13px 14px;font-size:15px;
+  border:1px solid var(--border);border-radius:10px;
+  background:var(--surface2);color:var(--text);
+  font-family:inherit;outline:none;
+  -webkit-appearance:none;appearance:none;
+}
+input[type=password]:focus,
+input[type=text]:focus{border-color:var(--accent2);}
+
+.icon-btn{
+  width:50px;height:50px;border:none;border-radius:10px;
+  background:var(--accent2);color:#fff;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+}
+.icon-btn:active{opacity:.8;}
+
+/* ── GRAMMAR PILLS ── */
+.grammar-wrap{
+  display:flex;flex-wrap:wrap;gap:7px;margin-top:2px;
+}
+.g-pill{
+  padding:6px 13px;border-radius:20px;
+  border:1px solid var(--border);
+  background:var(--surface2);color:var(--muted);
+  font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .18s;
+  -webkit-user-select:none;user-select:none;
+}
+.g-pill.active{
+  background:var(--accent2);border-color:var(--accent2);color:#fff;
+}
+.g-pill:active{opacity:.7;}
+
+/* ── SESSION STRIP ── */
+.session-wrap{overflow:hidden;}
+.session-strip{
+  display:flex;gap:7px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  padding:2px 0 4px;scrollbar-width:none;
+}
+.session-strip::-webkit-scrollbar{display:none;}
+.s-btn{
+  flex:0 0 auto;min-width:46px;height:38px;
+  border:1px solid var(--border);border-radius:8px;
+  background:var(--surface2);color:var(--muted);
+  font-size:13px;font-weight:600;cursor:pointer;
+}
+.s-btn.done{background:#152015;border-color:#2a452a;color:#5a9a5a;}
+.s-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.s-btn:active{opacity:.7;}
+
+/* ── BOTTOM BAR ── */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  padding-bottom:var(--safe-bottom);
+}
+
+/* Progress */
+.progress-bar{height:3px;background:var(--surface2);}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .5s ease;width:0%;
+}
+
+/* Question area */
+.sub-area{
+  padding:14px 18px 8px;
+  min-height:110px;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  text-align:center;
+  gap:8px;
+}
+
+/* Question number badge */
+.q-badge{
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);opacity:0;transition:opacity .3s;
+}
+.q-badge.show{opacity:1;}
+
+/* Question text */
+.sub-q{
+  font-size:20px;font-weight:600;line-height:1.4;
+  color:#fff;opacity:0;transition:opacity .35s ease;min-height:30px;
+}
+.sub-q.show{opacity:1;}
+
+/* Timer ring + countdown */
+.timer-wrap{
+  display:flex;align-items:center;gap:10px;
+  opacity:0;transition:opacity .35s ease;
+}
+.timer-wrap.show{opacity:1;}
+
+.timer-ring{position:relative;width:40px;height:40px;flex-shrink:0;}
+.timer-ring svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:var(--surface2);stroke-width:3.5;}
+.ring-fg{
+  fill:none;stroke:var(--green);stroke-width:3.5;
+  stroke-linecap:round;
+  stroke-dasharray:113;stroke-dashoffset:0;
+  transition:stroke-dashoffset .9s linear, stroke .5s;
+}
+.ring-num{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--text);
+}
+
+.timer-label{
+  font-size:12px;color:var(--muted);font-weight:500;
+  max-width:180px;text-align:left;line-height:1.4;
+}
+
+/* Controls */
+.ctrl-row{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 14px 12px;
+}
+.nav-btn{
+  width:52px;height:52px;
+  border:1px solid var(--border);border-radius:13px;
+  background:var(--surface2);color:var(--text);
+  font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nav-btn:active{background:var(--border);}
+
+.play-btn{
+  flex:1;height:52px;border:none;border-radius:13px;
+  background:linear-gradient(135deg,var(--accent) 0%,#c0003a 100%);
+  color:#fff;font-family:'Bebas Neue',sans-serif;
+  font-size:23px;letter-spacing:2.5px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 22px rgba(255,60,95,.28);
+  transition:opacity .15s;
+}
+.play-btn:active{opacity:.82;}
+.play-btn.paused{
+  background:linear-gradient(135deg,var(--accent2) 0%,#4a2acc 100%);
+  box-shadow:0 4px 22px rgba(124,92,255,.28);
+}
+
+/* Skip btn */
+.skip-btn{
+  width:52px;height:52px;
+  border:1px solid var(--border);border-radius:13px;
+  background:var(--surface2);color:var(--text);
+  font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  flex-shrink:0;letter-spacing:.5px;
+}
+.skip-btn:active{background:var(--border);}
+
+/* ── LOADING OVERLAY ── */
+.loading{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(10,10,15,.88);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.loading.show{display:flex;}
+.spinner{
+  width:46px;height:46px;border-radius:50%;
+  border:3px solid var(--border);border-top-color:var(--accent);
+  animation:spin .75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg{font-size:15px;color:var(--muted);letter-spacing:.3px;}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loadingText">Generating questions…</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">SubTrainer</div>
+  <div class="status-pill" id="statusPill">Ready</div>
+</div>
+
+<!-- SCROLLABLE AREA -->
+<div class="scroll-body">
+
+  <!-- API KEY -->
+  <div class="card">
+    <div class="card-label">Gemini API Key</div>
+    <div class="input-row">
+      <input type="password" id="apiKeyInput" placeholder="Paste your Gemini key…">
+      <button class="icon-btn" id="saveKeyBtn">💾</button>
+    </div>
+  </div>
+
+  <!-- TOPIC -->
+  <div class="card">
+    <div class="card-label">Topic (optional)</div>
+    <div class="input-row">
+      <input type="text" id="topicInput" placeholder="e.g. market, travel, family…">
+    </div>
+  </div>
+
+  <!-- GRAMMAR / CATEGORY FOCUS -->
+  <div class="card">
+    <div class="card-label">Category Focus</div>
+    <div class="grammar-wrap" id="grammarPills"></div>
+  </div>
+
+  <!-- SESSION HISTORY -->
+  <div class="card" id="sessionCard" style="display:none">
+    <div class="card-label">Sessions &mdash; <span id="sessionInfo"></span></div>
+    <div class="session-strip" id="sessionButtons"></div>
+  </div>
+
+</div>
+
+<!-- FIXED BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="sub-area">
+    <div class="q-badge" id="qBadge">Q 1 / 15</div>
+    <div class="sub-q" id="question">Press PLAY to start</div>
+    <div class="timer-wrap" id="timerWrap">
+      <div class="timer-ring">
+        <svg viewBox="0 0 40 40" width="40" height="40">
+          <circle class="ring-bg" cx="20" cy="20" r="18"/>
+          <circle class="ring-fg" id="ringFg" cx="20" cy="20" r="18"/>
+        </svg>
+        <div class="ring-num" id="ringNum">30</div>
+      </div>
+      <div class="timer-label" id="timerLabel">Answer out loud — next question in <b id="timerSec">30</b>s</div>
+    </div>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="nav-btn" id="prev" title="Previous session">◀</button>
+    <button class="play-btn" id="toggle">▶ &nbsp;PLAY</button>
+    <button class="skip-btn" id="skipBtn" title="Skip to next question">⏭<span style="font-size:9px;color:var(--muted)">SKIP</span></button>
+    <button class="nav-btn" id="next" title="Next / New session">▶▶</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════ CONFIG ══════════════════════════════ */
+const GRAMMAR_TOPICS = [
+  { label:"Random",        val:"random" },
+
+  // Home & Daily Life
+  { label:"Morning",       val:"Morning Routine" },
+  { label:"Home Talk",     val:"Home Conversation" },
+  { label:"Family",        val:"Family Conversation" },
+  { label:"Kitchen",       val:"Kitchen & Cooking" },
+  { label:"Shopping",      val:"Shopping & Grocery" },
+  { label:"Neighbours",    val:"Neighbourhood Conversation" },
+  { label:"Travel",        val:"Travel & Transport" },
+  { label:"Phone Talk",    val:"Phone Conversation" },
+
+  // Office Life
+  { label:"Office",        val:"Office Conversation" },
+  { label:"Meetings",      val:"Meeting English" },
+  { label:"Standup",       val:"Daily Standup Meeting" },
+  { label:"Manager",       val:"Talking to Manager" },
+  { label:"Clients",       val:"Client Communication" },
+  { label:"Emails",        val:"Office Emails & Chat" },
+  { label:"Work Help",     val:"Asking for Help at Work" },
+  { label:"Deadlines",     val:"Deadlines & Work Pressure" },
+  { label:"Feedback",      val:"Giving & Receiving Feedback" },
+
+  // Speaking Practice
+  { label:"Casual Talk",   val:"Casual Conversation" },
+  { label:"Questions",     val:"Question Forms" },
+  { label:"Negatives",     val:"Negative Sentences" },
+  { label:"Requests",      val:"Requests & Imperatives" },
+  { label:"Past",          val:"Past Tense" },
+  { label:"Present",       val:"Present Tense" },
+  { label:"Future",        val:"Future Tense" },
+  { label:"Modals",        val:"Modal Verbs" },
+
+  // Practice Modes
+  { label:"Dialogue",      val:"Dialogue Practice" },
+  { label:"Story",         val:"Story Mode" },
+  { label:"Practice",      val:"Practice Sentences" },
+];
+
+const ORDERED_TOPICS = [
+  // Morning & Home
+  "Waking Up in the Morning",
+  "Getting Ready for Office",
+  "Talking with Family",
+  "Breakfast Conversation",
+  "Cooking in Kitchen",
+  "Cleaning the House",
+  "Laundry & Daily Chores",
+  "Talking to Children",
+  "Weekend at Home",
+  "Watching TV & Relaxing",
+
+  // Neighbourhood & Outside
+  "Talking to Neighbours",
+  "Grocery Shopping",
+  "Vegetable Market Conversation",
+  "Medical Store Conversation",
+  "Talking to Security Guard",
+  "Using Public Transport",
+  "Auto / Taxi Conversation",
+  "Asking for Directions",
+  "Talking in Apartment Society",
+  "Paying Bills & Services",
+
+  // Office Daily Life
+  "Going to Office",
+  "Talking with Colleagues",
+  "Office Small Talk",
+  "Daily Office Conversation",
+  "Talking to Manager",
+  "Asking for Help at Work",
+  "Explaining Your Task",
+  "Giving Daily Updates",
+  "Talking About Workload",
+  "Handling Deadlines",
+  "Taking Leave from Office",
+  "Writing Office Chat Messages",
+  "Email Communication",
+  "Talking to HR",
+  "Salary & Appraisal Discussion",
+
+  // Meetings
+  "Starting a Meeting",
+  "Joining a Meeting Late",
+  "Daily Standup Meeting",
+  "Giving Project Update",
+  "Asking Questions in Meeting",
+  "Agreeing Politely",
+  "Disagreeing Politely",
+  "Interrupting Politely",
+  "Asking for Clarification",
+  "Explaining a Problem",
+  "Explaining a Solution",
+  "Handling Difficult Questions",
+  "Ending a Meeting Politely",
+
+  // IT Office Situations
+  "Production Issue Discussion",
+  "Technical Issue Discussion",
+  "Talking About Server Issues",
+  "Password Reset Scenario",
+  "User Support Conversation",
+  "Incident Management Call",
+  "Deployment Discussion",
+  "Explaining Technical Issues Simply",
+
+  // Confidence & Fluency
+  "Speaking Confidently",
+  "Using Simple English",
+  "Being Brief and Clear",
+  "Using Soft and Polite Language",
+  "Handling Misunderstanding",
+  "Correcting Someone Politely",
+  "Giving Feedback Politely",
+  "Making Requests Politely",
+
+  // Casual English
+  "Talking About Weekend",
+  "Talking About Movies",
+  "Talking About Food",
+  "Talking About Weather",
+  "Talking About Health",
+  "Talking About Hobbies",
+  "Phone Conversation",
+  "Casual Conversation with Friends",
+];
+
+let topicIndex = Number(localStorage.getItem("topic_index") || 0) % ORDERED_TOPICS.length;
+
+function nextTopic() {
+  const custom = topicInput.value.trim();
+  if (custom) return custom;
+  const t = ORDERED_TOPICS[topicIndex];
+  topicIndex = (topicIndex + 1) % ORDERED_TOPICS.length;
+  localStorage.setItem("topic_index", topicIndex);
+  return t;
+}
+
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ═══════════════════════════════ STATE ══════════════════════════════ */
+let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
+let selectedGrammar = "random";
+let sessions = [];
+let currentSession = -1;
+let questions = [];       // array of question strings
+let playing = false;
+let voices = [];
+let timerInterval = null;
+let skipRequested = false;
+
+const ANSWER_TIME = 60; // seconds
+
+const apiInput     = document.getElementById("apiKeyInput");
+const topicInput   = document.getElementById("topicInput");
+const questionBox  = document.getElementById("question");
+const qBadge       = document.getElementById("qBadge");
+const timerWrap    = document.getElementById("timerWrap");
+const ringFg       = document.getElementById("ringFg");
+const ringNum      = document.getElementById("ringNum");
+const timerSec     = document.getElementById("timerSec");
+const toggleBtn    = document.getElementById("toggle");
+const statusPill   = document.getElementById("statusPill");
+const loadingDiv   = document.getElementById("loading");
+const loadingTxt   = document.getElementById("loadingText");
+const progressFill = document.getElementById("progressFill");
+const skipBtn      = document.getElementById("skipBtn");
+
+if (GEMINI_KEY) apiInput.value = GEMINI_KEY;
+
+/* ═══════════════════════════════ UTILS ══════════════════════════════ */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const setStatus = msg => { statusPill.textContent = msg; };
+const showLoading = msg => { loadingTxt.textContent = msg; loadingDiv.classList.add("show"); };
+const hideLoading = () => { loadingDiv.classList.remove("show"); };
+const setProgress = frac => { progressFill.style.width = Math.min(Math.max(frac,0),1)*100+"%"; };
+
+function fade(text) {
+  return new Promise(r => {
+    questionBox.classList.remove("show");
+    qBadge.classList.remove("show");
+    setTimeout(() => {
+      questionBox.textContent = text;
+      questionBox.classList.add("show");
+      r();
+    }, 260);
+  });
+}
+
+function showBadge(idx, total) {
+  qBadge.textContent = "Q " + (idx+1) + " / " + total;
+  qBadge.classList.add("show");
+}
+
+/* ═══════════════════════════════ TIMER ══════════════════════════════ */
+const CIRCUMFERENCE = 2 * Math.PI * 18; // r=18 → ~113.1
+
+function startTimer(seconds) {
+  return new Promise(resolve => {
+    clearInterval(timerInterval);
+    skipRequested = false;
+    timerWrap.classList.add("show");
+    ringFg.style.stroke = "var(--green)";
+
+    let remaining = seconds;
+    function tick() {
+      if (!playing || skipRequested) {
+        clearInterval(timerInterval);
+        resolve();
+        return;
+      }
+      remaining = Math.max(0, remaining);
+      ringNum.textContent = remaining;
+      timerSec.textContent = remaining;
+      const frac = remaining / seconds;
+      ringFg.style.strokeDashoffset = CIRCUMFERENCE * (1 - frac);
+      // Colour shift: green → orange → red
+      if (frac > 0.5)      ringFg.style.stroke = "var(--green)";
+      else if (frac > 0.2) ringFg.style.stroke = "#f59f00";
+      else                 ringFg.style.stroke = "var(--accent)";
+
+      if (remaining === 0) {
+        clearInterval(timerInterval);
+        setTimeout(resolve, 400);
+        return;
+      }
+      remaining--;
+    }
+    tick();
+    timerInterval = setInterval(tick, 1000);
+  });
+}
+
+function hideTimer() {
+  clearInterval(timerInterval);
+  timerWrap.classList.remove("show");
+  ringFg.style.strokeDashoffset = 0;
+}
+
+/* ═══════════════════════════════ API KEY ════════════════════════════ */
+document.getElementById("saveKeyBtn").onclick = () => {
+  const k = apiInput.value.trim();
+  if (!k) { setStatus("Enter key!"); return; }
+  localStorage.setItem("gemini_key", k);
+  GEMINI_KEY = k;
+  setStatus("Key saved ✅");
+};
+
+/* ═══════════════════════════════ SKIP BUTTON ════════════════════════ */
+skipBtn.onclick = () => { skipRequested = true; };
+
+/* ═══════════════════════════════ GRAMMAR PILLS ══════════════════════ */
+const pillWrap = document.getElementById("grammarPills");
+GRAMMAR_TOPICS.forEach(g => {
+  const p = document.createElement("button");
+  p.className = "g-pill" + (g.val === "random" ? " active" : "");
+  p.textContent = g.label;
+  p.onclick = () => {
+    selectedGrammar = g.val;
+    document.querySelectorAll(".g-pill").forEach(x => x.classList.remove("active"));
+    p.classList.add("active");
+  };
+  pillWrap.appendChild(p);
+});
+
+/* ═══════════════════════════════ WAKE LOCK ══════════════════════════ */
+let wakeLock = null;
+async function enableWakeLock() {
+  try {
+    if (wakeLock && !wakeLock.released) return;
+    wakeLock = await navigator.wakeLock.request('screen');
+  } catch(e) {}
+}
+
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    if (isMobile && playing) {
+      stopPlayback(); setPlayState(false); setStatus("⏸ Paused — tab hidden");
+    }
+  } else {
+    if (playing) enableWakeLock();
+  }
+});
+
+/* ═══════════════════════════════ SESSION STRIP ══════════════════════ */
+function renderSessions() {
+  const card = document.getElementById("sessionCard");
+  const strip = document.getElementById("sessionButtons");
+  if (!sessions.length) { card.style.display = "none"; return; }
+  card.style.display = "block";
+  document.getElementById("sessionInfo").textContent = sessions.length + " session" + (sessions.length > 1 ? "s" : "");
+  strip.innerHTML = "";
+  sessions.forEach((_, i) => {
+    const b = document.createElement("button");
+    b.className = "s-btn" + (i === currentSession ? " active" : i < currentSession ? " done" : "");
+    b.textContent = i + 1;
+    b.onclick = () => jumpSession(i);
+    strip.appendChild(b);
+  });
+  const active = strip.querySelector(".active");
+  if (active) active.scrollIntoView({ inline:"center", block:"nearest" });
+  setProgress(currentSession / Math.max(sessions.length - 1, 1));
+}
+
+function jumpSession(i) {
+  if (i < 0 || i >= sessions.length) return;
+  stopPlayback();
+  currentSession = i;
+  questions = sessions[i];
+  setPlayState(false);
+  hideTimer();
+  renderSessions();
+  setStatus("Session " + (i+1) + " · " + questions.length + " questions");
+}
+
+/* ═══════════════════════════════ CONTROLS ═══════════════════════════ */
+function setPlayState(isPlaying) {
+  playing = isPlaying;
+  if (isPlaying) {
+    toggleBtn.innerHTML = "⏸ &nbsp;PAUSE";
+    toggleBtn.classList.add("paused");
+  } else {
+    toggleBtn.innerHTML = "▶ &nbsp;PLAY";
+    toggleBtn.classList.remove("paused");
+  }
+}
+
+toggleBtn.onclick = () => {
+  if (playing) {
+    stopPlayback(); setPlayState(false);
+  } else {
+    if (questions.length) startPlayback(0);
+    else generateAndPlay();
+  }
+};
+
+document.getElementById("prev").onclick = () => {
+  if (currentSession > 0) jumpSession(currentSession - 1);
+};
+
+document.getElementById("next").onclick = () => {
+  if (currentSession < sessions.length - 1) {
+    jumpSession(currentSession + 1);
+    startPlayback(0);
+  } else {
+    generateAndPlay();
+  }
+};
+
+function stopPlayback() {
+  playing = false;
+  clearInterval(timerInterval);
+  skipRequested = true;
+  hideTimer();
+  try { speechSynthesis.cancel(); } catch(e) {}
+  hideLoading();
+}
+
+/* ═══════════════════════════════ VOICES ════════════════════════════ */
+function preloadVoices() { voices = speechSynthesis.getVoices(); }
+speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); };
+
+function getBestVoice(lang) {
+  if (!voices.length) voices = speechSynthesis.getVoices();
+  return voices.find(v => v.lang === lang)
+      || voices.find(v => v.lang.startsWith(lang.split("-")[0]))
+      || null;
+}
+
+/* ═══════════════════════════════ SPEAK ═════════════════════════════ */
+function speakText(text, lang) {
+  return new Promise(resolve => {
+    if (!playing) { resolve(); return; }
+    speechSynthesis.cancel();
+    setTimeout(() => {
+      if (!playing) { resolve(); return; }
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = 0.88;
+      const v = getBestVoice(lang);
+      if (v) u.voice = v;
+
+      let done = false;
+      const words = text.split(" ").length;
+      const wd = setTimeout(() => { speechSynthesis.cancel(); if (!done) { done=true; resolve(); } },
+        Math.max(words*660, 3500) + 2000);
+
+      u.onend   = () => { if (!done) { done=true; clearTimeout(wd); resolve(); } };
+      u.onerror = () => { if (!done) { done=true; clearTimeout(wd); resolve(); } };
+      speechSynthesis.speak(u);
+    }, 160);
+  });
+}
+
+/* ═══════════════════════════════ AI ════════════════════════════════ */
+async function generateAndPlay() {
+  if (!GEMINI_KEY) { alert("Enter Gemini API key first"); return; }
+
+  stopPlayback();
+  showLoading("Generating 15 questions…");
+  setStatus("Thinking…");
+
+  const topic = nextTopic();
+  const categoryPool = GRAMMAR_TOPICS.filter(g => g.val !== "random").map(g => g.val);
+  const category = selectedGrammar === "random"
+    ? pickRandom(categoryPool)
+    : selectedGrammar;
+
+  const prompt = `Generate exactly 15 short spoken English practice questions for the topic: "${topic}".
+Style/focus: ${category}.
+
+Rules:
+- Each question must be short (max 12 words), natural, conversational, and easy to answer out loud in English.
+- Questions should test everyday spoken English — things someone would actually say or be asked at work or daily life.
+- Vary question types: opinion, experience, how-would-you, what-would-you, yes/no followup, describe, explain.
+- No markdown, no asterisks, no numbering, plain text only.
+- Return ONLY a valid JSON array of 15 strings. No preamble, no explanation.
+
+Example format:
+["How would you explain this issue to your manager?","What do you usually say when you're running late?"]`;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + GEMINI_KEY,
+        { method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] }) }
+      );
+      const data = await res.json();
+      if (!data.candidates) throw new Error("No candidates: " + JSON.stringify(data));
+      let raw = data.candidates[0].content.parts[0].text;
+      raw = raw.replace(/```json|```/g,"").trim();
+      raw = raw.substring(raw.indexOf("["), raw.lastIndexOf("]")+1);
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed) || parsed.length < 5) throw new Error("Bad parse");
+
+      const clean = parsed.map(q =>
+        String(q).replace(/\*{1,3}([^*]+)\*{1,3}/g,"$1").replace(/_([^_]+)_/g,"$1").trim()
+      );
+
+      sessions.push(clean);
+      currentSession = sessions.length - 1;
+      questions = clean;
+
+      hideLoading();
+      setStatus("Session " + sessions.length + " · " + questions.length + " questions");
+      renderSessions();
+      startPlayback(0);
+      return;
+    } catch(e) {
+      console.warn("Attempt " + (attempt+1) + " failed:", e);
+      showLoading("Retry " + (attempt+1) + "/3…");
+      await sleep(1600);
+    }
+  }
+  hideLoading();
+  setStatus("❌ AI failed — check key/network");
+}
+
+/* ═══════════════════════════════ PLAYBACK ══════════════════════════ */
+async function startPlayback(startIndex) {
+  if (!questions.length) return;
+  stopPlayback();
+  await sleep(130);
+  playing = true; skipRequested = false;
+  setPlayState(true);
+  await enableWakeLock();
+
+  for (let i = startIndex; i < questions.length; i++) {
+    if (!playing) return;
+    setProgress(i / Math.max(questions.length - 1, 1));
+    await showQuestion(questions[i], i);
+    if (!playing) return;
+  }
+
+  setProgress(1);
+  renderSessions();
+
+  if (playing) {
+    // Brief pause, show "loading next…"
+    questionBox.classList.remove("show");
+    qBadge.classList.remove("show");
+    hideTimer();
+    setStatus("Next session incoming…");
+    await sleep(1800);
+    if (playing) generateAndPlay();
+  } else {
+    setPlayState(false);
+    setStatus("Session " + (currentSession+1) + " done ✅");
+  }
+}
+
+async function showQuestion(q, index) {
+  // 1. Fade in question text + badge
+  showBadge(index, questions.length);
+  await fade(q);
+  if (!playing) return;
+
+  // 2. Read question aloud
+  await speakText(q, "en-US");
+  if (!playing) return;
+
+  // 3. Small pause so user registers the question
+  await sleep(600);
+  if (!playing) return;
+
+  // 4. 30-second answer timer
+  await startTimer(ANSWER_TIME);
+  if (!playing) return;
+
+  // 5. Brief gap before next question
+  await sleep(500);
+}
+
+/* ═══════════════════════════════ INIT ══════════════════════════════ */
+window.onload = () => {
+  preloadVoices();
+  ringFg.style.strokeDasharray = CIRCUMFERENCE;
+  ringFg.style.strokeDashoffset = CIRCUMFERENCE;
+};
+</script>
+</body>
+</html>
