@@ -33,7 +33,6 @@ html,body{
   overscroll-behavior:none;
 }
 
-/* ── HEADER ── */
 .header{
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 16px 12px;
@@ -55,14 +54,12 @@ html,body{
   max-width:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 
-/* ── SCROLL BODY ── */
 .scroll-body{
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
   padding:14px 14px calc(260px + var(--safe-bottom));
 }
 
-/* ── CARD ── */
 .card{
   background:var(--surface);
   border:1px solid var(--border);
@@ -76,7 +73,6 @@ html,body{
   margin-bottom:10px;
 }
 
-/* ── INPUT ROW ── */
 .input-row{display:flex;gap:8px;align-items:center;}
 input[type=password],
 input[type=text]{
@@ -97,7 +93,6 @@ input[type=text]:focus{border-color:var(--accent2);}
 }
 .icon-btn:active{opacity:.8;}
 
-/* ── GRAMMAR PILLS ── */
 .grammar-wrap{
   display:flex;flex-wrap:wrap;gap:7px;margin-top:2px;
 }
@@ -114,7 +109,6 @@ input[type=text]:focus{border-color:var(--accent2);}
 }
 .g-pill:active{opacity:.7;}
 
-/* ── SESSION STRIP ── */
 .session-wrap{overflow:hidden;}
 .session-strip{
   display:flex;gap:7px;
@@ -132,7 +126,6 @@ input[type=text]:focus{border-color:var(--accent2);}
 .s-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 .s-btn:active{opacity:.7;}
 
-/* ── CACHE CARD ── */
 .cache-row{
   display:flex;align-items:center;justify-content:space-between;
   gap:10px;
@@ -163,7 +156,6 @@ input[type=text]:focus{border-color:var(--accent2);}
 }
 .clear-btn:active{opacity:.7;}
 
-/* ── BOTTOM BAR ── */
 .bottom-bar{
   position:fixed;bottom:0;left:0;right:0;z-index:100;
   background:var(--bg);
@@ -171,7 +163,6 @@ input[type=text]:focus{border-color:var(--accent2);}
   padding-bottom:var(--safe-bottom);
 }
 
-/* Progress */
 .progress-bar{height:3px;background:var(--surface2);}
 .progress-fill{
   height:100%;
@@ -179,13 +170,13 @@ input[type=text]:focus{border-color:var(--accent2);}
   transition:width .5s ease;width:0%;
 }
 
-/* Subtitle */
 .sub-area{
   padding:14px 18px 10px;
   min-height:106px;
   display:flex;flex-direction:column;
   justify-content:center;align-items:center;
   text-align:center;
+  position:relative;
 }
 .sub-hi{
   font-family:'Noto Sans Devanagari',sans-serif;
@@ -199,7 +190,6 @@ input[type=text]:focus{border-color:var(--accent2);}
 }
 .sub-hi.show,.sub-en.show{opacity:1;}
 
-/* Mode badge */
 .mode-badge{
   position:absolute;top:8px;right:14px;
   font-size:10px;font-weight:700;letter-spacing:1px;
@@ -210,7 +200,6 @@ input[type=text]:focus{border-color:var(--accent2);}
 }
 .mode-badge.show{opacity:1;}
 
-/* Controls */
 .ctrl-row{
   display:flex;align-items:center;gap:9px;
   padding:10px 14px 12px;
@@ -244,7 +233,6 @@ input[type=text]:focus{border-color:var(--accent2);}
   box-shadow:0 4px 22px rgba(0,200,150,.28);
 }
 
-/* ── LOADING OVERLAY ── */
 .loading{
   display:none;position:fixed;inset:0;z-index:200;
   background:rgba(10,10,15,.88);
@@ -259,29 +247,22 @@ input[type=text]:focus{border-color:var(--accent2);}
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 .loading-msg{font-size:15px;color:var(--muted);letter-spacing:.3px;}
-
-/* sub-area relative for badge */
-.sub-area{position:relative;}
 </style>
 </head>
 <body>
 
-<!-- LOADING OVERLAY -->
 <div class="loading" id="loading">
   <div class="spinner"></div>
   <div class="loading-msg" id="loadingText">Processing…</div>
 </div>
 
-<!-- HEADER -->
 <div class="header">
   <div class="logo">SubTrainer</div>
   <div class="status-pill" id="statusPill">Ready</div>
 </div>
 
-<!-- SCROLLABLE AREA -->
 <div class="scroll-body">
 
-  <!-- API KEY -->
   <div class="card">
     <div class="card-label">Gemini API Key</div>
     <div class="input-row">
@@ -290,7 +271,6 @@ input[type=text]:focus{border-color:var(--accent2);}
     </div>
   </div>
 
-  <!-- TOPIC -->
   <div class="card">
     <div class="card-label">Topic (optional)</div>
     <div class="input-row">
@@ -298,13 +278,11 @@ input[type=text]:focus{border-color:var(--accent2);}
     </div>
   </div>
 
-  <!-- GRAMMAR FOCUS -->
   <div class="card">
     <div class="card-label">Grammar Focus</div>
     <div class="grammar-wrap" id="grammarPills"></div>
   </div>
 
-  <!-- RECENT CACHE -->
   <div class="card" id="cacheCard">
     <div class="card-label">Recent Sentences Cache</div>
     <div class="cache-row">
@@ -319,15 +297,13 @@ input[type=text]:focus{border-color:var(--accent2);}
     </div>
   </div>
 
-  <!-- SESSION HISTORY (hidden until first generation) -->
   <div class="card" id="sessionCard" style="display:none">
     <div class="card-label">Sessions &mdash; <span id="sessionInfo"></span></div>
     <div class="session-strip" id="sessionButtons"></div>
   </div>
 
-</div><!-- /scroll-body -->
+</div>
 
-<!-- FIXED BOTTOM BAR -->
 <div class="bottom-bar">
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
@@ -345,9 +321,8 @@ input[type=text]:focus{border-color:var(--accent2);}
 </div>
 
 <script>
-/* ═══════════════════════════════ CONFIG ══════════════════════════════ */
-const CACHE_KEY      = "subtrainer_sentence_cache";   // localStorage key for sentences
-const CACHE_MAX      = 45;                             // max sentences to remember
+const CACHE_KEY  = "subtrainer_sentence_cache";
+const CACHE_MAX  = 45;
 
 const GRAMMAR_TOPICS = [
   { label:"Random",    hi:"यादृच्छिक",  val:"random" },
@@ -440,20 +415,12 @@ function nextTopic() {
 
 function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-/* ═══════════════════════════════ SENTENCE CACHE ══════════════════════
-   Stores last 45 sentences as a rolling buffer in localStorage.
-   Each entry: { hi, en, topic, ts }
-══════════════════════════════════════════════════════════════════════ */
 function loadCache() {
   try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "[]"); }
   catch(e) { return []; }
 }
+function saveCache(arr) { localStorage.setItem(CACHE_KEY, JSON.stringify(arr)); }
 
-function saveCache(arr) {
-  localStorage.setItem(CACHE_KEY, JSON.stringify(arr));
-}
-
-/** Push new sentences into cache, keeping last CACHE_MAX */
 function pushToCache(sentenceArr, topic) {
   let cache = loadCache();
   const tagged = sentenceArr.map(s => ({ hi: s.hi, en: s.en, topic, ts: Date.now() }));
@@ -462,21 +429,15 @@ function pushToCache(sentenceArr, topic) {
   updateCacheUI(cache);
 }
 
-function clearCache() {
-  saveCache([]);
-  updateCacheUI([]);
-}
+function clearCache() { saveCache([]); updateCacheUI([]); }
 
 function updateCacheUI(cache) {
   if (!cache) cache = loadCache();
   document.getElementById("cacheCount").textContent = cache.length;
   const repeatBtn = document.getElementById("repeatBtn");
   repeatBtn.disabled = cache.length === 0;
-
-  // Show hint about what's in cache
   const hint = document.getElementById("cacheTopicHint");
   if (cache.length > 0) {
-    // Find the most recent topic
     const lastTopic = cache[cache.length - 1].topic || "";
     hint.textContent = lastTopic ? `Latest: "${lastTopic}"` : "";
   } else {
@@ -484,7 +445,7 @@ function updateCacheUI(cache) {
   }
 }
 
-/* ═══════════════════════════════ STATE ══════════════════════════════ */
+/* ── STATE ── */
 let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
 let selectedGrammar = "random";
 let sessions = [];
@@ -493,7 +454,7 @@ let sentences = [];
 let playing = false;
 let speakAborted = false;
 let voices = [];
-let isRepeatMode = false;   // true when playing from cache
+let isRepeatMode = false;
 
 const apiInput     = document.getElementById("apiKeyInput");
 const topicInput   = document.getElementById("topicInput");
@@ -509,7 +470,6 @@ const modeBadge    = document.getElementById("modeBadge");
 if (GEMINI_KEY) apiInput.value = GEMINI_KEY;
 updateCacheUI();
 
-/* ═══════════════════════════════ UTILS ══════════════════════════════ */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const setStatus = msg => { statusPill.textContent = msg; };
 const showLoading = msg => { loadingTxt.textContent = msg; loadingDiv.classList.add("show"); };
@@ -534,7 +494,6 @@ function fade(el, text) {
   });
 }
 
-/* ═══════════════════════════════ API KEY ════════════════════════════ */
 document.getElementById("saveKeyBtn").onclick = () => {
   const k = apiInput.value.trim();
   if (!k) { setStatus("Enter key!"); return; }
@@ -543,7 +502,6 @@ document.getElementById("saveKeyBtn").onclick = () => {
   setStatus("Key saved ✅");
 };
 
-/* ═══════════════════════════════ GRAMMAR PILLS ══════════════════════ */
 const pillWrap = document.getElementById("grammarPills");
 GRAMMAR_TOPICS.forEach(g => {
   const p = document.createElement("button");
@@ -558,7 +516,6 @@ GRAMMAR_TOPICS.forEach(g => {
   pillWrap.appendChild(p);
 });
 
-/* ═══════════════════════════════ CACHE CONTROLS ════════════════════ */
 document.getElementById("repeatBtn").onclick = () => {
   const cache = loadCache();
   if (!cache.length) return;
@@ -576,7 +533,6 @@ document.getElementById("clearCacheBtn").onclick = () => {
   }
 };
 
-/* ═══════════════════════════════ WAKE LOCK ═══════════════════════════ */
 let wakeLock = null;
 async function enableWakeLock() {
   try {
@@ -596,7 +552,6 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-/* ═══════════════════════════════ SESSION STRIP ══════════════════════ */
 function renderSessions() {
   const card = document.getElementById("sessionCard");
   const strip = document.getElementById("sessionButtons");
@@ -627,18 +582,12 @@ function jumpSession(i) {
   setStatus("Session " + (i + 1) + " · " + sentences.length + " lines");
 }
 
-/* ═══════════════════════════════ CONTROLS ═══════════════════════════ */
 function setPlayState(isPlaying) {
   playing = isPlaying;
   if (isPlaying) {
-    if (isRepeatMode) {
-      toggleBtn.innerHTML = "⏸ &nbsp;PAUSE";
-      toggleBtn.classList.add("paused");
-      toggleBtn.classList.remove("repeat-mode");
-    } else {
-      toggleBtn.innerHTML = "⏸ &nbsp;PAUSE";
-      toggleBtn.classList.add("paused");
-    }
+    toggleBtn.innerHTML = "⏸ &nbsp;PAUSE";
+    toggleBtn.classList.add("paused");
+    toggleBtn.classList.remove("repeat-mode");
   } else {
     if (isRepeatMode) {
       toggleBtn.innerHTML = "↺ &nbsp;REPEAT";
@@ -656,9 +605,7 @@ toggleBtn.onclick = () => {
   if (playing) {
     stopPlayback(); setPlayState(false);
   } else {
-    if (isRepeatMode && sentences.length) {
-      startPlayback(0);
-    } else if (sentences.length) {
+    if (sentences.length) {
       startPlayback(0);
     } else {
       generateAndPlay();
@@ -687,7 +634,6 @@ function stopPlayback() {
   hideLoading();
 }
 
-/* ═══════════════════════════════ VOICES ═════════════════════════════ */
 function preloadVoices() { voices = speechSynthesis.getVoices(); }
 speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); };
 
@@ -698,7 +644,6 @@ function getBestVoice(lang) {
       || null;
 }
 
-/* ═══════════════════════════════ AI ════════════════════════════════ */
 async function generateAndPlay() {
   if (!GEMINI_KEY) { alert("Enter Gemini API key first"); return; }
 
@@ -776,7 +721,6 @@ Return ONLY valid JSON. No explanations, no headings, no markdown, no extra text
         en: s.en.replace(/\*{1,3}([^*]+)\*{1,3}/g,"$1").replace(/_([^_]+)_/g,"$1").trim()
       }));
 
-      // Push to rolling cache (last 45)
       pushToCache(clean, topic);
 
       sessions.push(clean);
@@ -798,7 +742,6 @@ Return ONLY valid JSON. No explanations, no headings, no markdown, no extra text
   setStatus("❌ AI failed — check key/network");
 }
 
-/* ═══════════════════════════════ PLAYBACK ═══════════════════════════ */
 async function startPlayback(startIndex) {
   if (!sentences.length) return;
   stopPlayback();
@@ -816,12 +759,15 @@ async function startPlayback(startIndex) {
 
   setProgress(1);
 
+  // ── CHANGED: after repeat mode finishes, automatically generate & play next session ──
   if (isRepeatMode) {
-    // Repeat mode: loop back or stop
     if (playing) {
-      setStatus("Repeat done ✅  — press ↺ to replay or ▶▶ for new session");
+      setStatus("Repeat done ✅  — loading next session…");
+      setRepeatMode(false);
+      await sleep(1200);
+      if (playing) generateAndPlay();
+    } else {
       setPlayState(false);
-      // Keep repeat mode UI on so user sees the option
     }
     return;
   }
@@ -854,7 +800,6 @@ async function showSentence(s, index) {
   await sleep(2500);
 }
 
-/* ═══════════════════════════════ SPEECH ════════════════════════════ */
 function speakText(text, lang) {
   return new Promise(resolve => {
     if (!playing) { resolve(); return; }
@@ -883,7 +828,6 @@ function speakText(text, lang) {
   });
 }
 
-/* ═══════════════════════════════ INIT ══════════════════════════════ */
 window.onload = () => { preloadVoices(); };
 </script>
 </body>
