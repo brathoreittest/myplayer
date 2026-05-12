@@ -325,7 +325,7 @@ const CACHE_KEY  = "subtrainer_sentence_cache";
 const CACHE_MAX  = 45;
 
 const GRAMMAR_TOPICS = [
-  { label:"Random",    hi:"यादृच्छिक",  val:"random" },
+  { label:"In Order ↓", hi:"क्रमबद्ध",  val:"random" },
   { label:"Noun",      hi:"संज्ञा",     val:"संज्ञा (Noun)" },
   { label:"Pronoun",   hi:"सर्वनाम",   val:"सर्वनाम (Pronoun)" },
   { label:"Verb",      hi:"क्रिया",    val:"क्रिया (Verb)" },
@@ -402,7 +402,8 @@ const ORDERED_TOPICS = [
   "Asking Someone to Slow Down",
 ];
 
-let topicIndex = Number(localStorage.getItem("topic_index") || 0) % ORDERED_TOPICS.length;
+let topicIndex   = Number(localStorage.getItem("topic_index")   || 0) % ORDERED_TOPICS.length;
+let grammarIndex = Number(localStorage.getItem("grammar_index") || 0);
 
 function nextTopic() {
   const custom = topicInput.value.trim();
@@ -411,6 +412,19 @@ function nextTopic() {
   topicIndex = (topicIndex + 1) % ORDERED_TOPICS.length;
   localStorage.setItem("topic_index", topicIndex);
   return t;
+}
+
+// Grammar pool = all pills except "random" — cycles in order, persisted
+const GRAMMAR_POOL = GRAMMAR_TOPICS.filter(g => g.val !== "random").map(g => g.val);
+grammarIndex = grammarIndex % GRAMMAR_POOL.length;
+
+function nextGrammar() {
+  // If user manually picked a pill (not "random"), use that instead
+  if (selectedGrammar !== "random") return selectedGrammar;
+  const g = GRAMMAR_POOL[grammarIndex];
+  grammarIndex = (grammarIndex + 1) % GRAMMAR_POOL.length;
+  localStorage.setItem("grammar_index", grammarIndex);
+  return g;
 }
 
 function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
@@ -654,10 +668,7 @@ async function generateAndPlay() {
 
   const topic = nextTopic();
 
-  const grammarPool = GRAMMAR_TOPICS.filter(g => g.val !== "random").map(g => g.val);
-  const grammar = selectedGrammar === "random"
-    ? pickRandom(grammarPool)
-    : selectedGrammar;
+  const grammar = nextGrammar();
 
   const topicLine = `The paragraph should be about the theme: "${topic}".`;
 
@@ -728,7 +739,7 @@ Return ONLY valid JSON. No explanations, no headings, no markdown, no extra text
       sentences = clean;
 
       hideLoading();
-      setStatus("Session " + sessions.length + " · " + sentences.length + " lines · Topic: " + topic);
+      setStatus("Session " + sessions.length + " · " + sentences.length + " lines · " + topic + " · " + grammar);
       renderSessions();
       startPlayback(0);
       return;
