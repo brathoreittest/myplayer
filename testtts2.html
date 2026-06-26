@@ -640,7 +640,7 @@ async function speakText(text, lang) {
   try {
     const voicePreset = lang === "hi-IN" ? "Guru" : "Breeze";
     
-    const response = await fetch(
+    const res = await fetch(
   "https://generativelanguage.googleapis.com/v1beta/interactions",
   {
     method: "POST",
