@@ -645,7 +645,7 @@ async function speakText(text, lang) {
   {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       contents: [
@@ -658,9 +658,13 @@ async function speakText(text, lang) {
         }
       ],
       generationConfig: {
-        responseMimeType: "audio/mpeg",
-        audioConfig: {
-          voice: voicePreset
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: voicePreset
+            }
+          }
         }
       }
     })
