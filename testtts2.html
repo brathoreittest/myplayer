@@ -641,28 +641,32 @@ async function speakText(text, lang) {
     const voicePreset = lang === "hi-IN" ? "Guru" : "Breeze";
     
     const res = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=" + GEMINI_KEY,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=${GEMINI_KEY}`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            {
               text: text
-            }]
-          }],
-          generationConfig: {
-            responseMimeType: "audio/mpeg",
-            audioConfig: {
-              voiceConfig: {
-                presetVoice: voicePreset
-              }
             }
-          }
-        })
+          ]
+        }
+      ],
+      generationConfig: {
+        responseMimeType: "audio/mpeg",
+        audioConfig: {
+          voice: voicePreset
+        }
       }
-    );
-
+    })
+  }
+);
+    
     if (!res.ok) {
       const errData = await res.json();
       console.warn("TTS API error:", errData);
