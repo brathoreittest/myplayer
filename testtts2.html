@@ -648,15 +648,20 @@ async function speakText(text, lang) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: text }] }],
-          generationConfig: { response_mime_type: "audio/mpeg" },
-          voiceConfig: { language_code: languageCode }
+          generationConfig: {
+            response_mime_type: "audio/mpeg"
+          },
+          speechConfig: {
+            voice_preset: lang === "hi-IN" ? "Guru" : "Breeze"
+          }
         })
       }
     );
 
     if (!res.ok) {
       const errData = await res.json();
-      throw new Error("TTS API error: " + JSON.stringify(errData));
+      console.warn("TTS API error:", errData);
+      return;
     }
 
     const audioBlob = await res.blob();
