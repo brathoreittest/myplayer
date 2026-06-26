@@ -641,20 +641,25 @@ async function speakText(text, lang) {
   try {
     const languageCode = lang === "hi-IN" ? "hi-IN" : "en-US";
     
+    const requestBody = {
+      contents: [{ 
+        parts: [{ text: text }] 
+      }]
+    };
+
+    // Add voice preset based on language
+    if (lang === "hi-IN") {
+      requestBody.voice_config = { preset_voice: "Guru" };
+    } else {
+      requestBody.voice_config = { preset_voice: "Breeze" };
+    }
+
     const res = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:streamGenerateContent?key=" + GEMINI_KEY,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=" + GEMINI_KEY,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: text }] }],
-          generationConfig: {
-            response_mime_type: "audio/mpeg"
-          },
-          speechConfig: {
-            voice_preset: lang === "hi-IN" ? "Guru" : "Breeze"
-          }
-        })
+        body: JSON.stringify(requestBody)
       }
     );
 
@@ -664,7 +669,23 @@ async function speakText(text, lang) {
       return;
     }
 
-    const audioBlob = await res.blob();
+    const data = await res.json();
+    
+    // Extract audio from response
+    if (!data.candidates || !data.candidates[0].content.parts[0].inline_data) {
+      console.warn("No audio data in response");
+      return;
+    }
+
+    const audioData = data.candidates[0].content.parts[0].inline_data.data;
+    const mimeType = data.candidates[0].content.parts[0].inline_data.mime_type || "audio/mpeg";
+    
+    const binaryString = atob(audioData);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const audioBlob = new Blob([bytes], { type: mimeType });
     const audioUrl = URL.createObjectURL(audioBlob);
     
     return new Promise(resolve => {
