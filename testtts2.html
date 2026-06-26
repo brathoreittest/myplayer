@@ -326,7 +326,6 @@ const ORDERED_TOPICS = [
   "bus stop","tea stall","evening walk","mobile phone","internet","social media","online shopping","birthday party","wedding","doctor visit","hospital","gym","exercise","yoga","park","traffic","police"
 ];
 
-// Cycles in order, saved across page loads
 let topicIndex = Number(localStorage.getItem("topic_index") || 0) % ORDERED_TOPICS.length;
 
 function nextTopic() {
@@ -343,7 +342,7 @@ function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 /* ═══════════════════════════════ STATE ══════════════════════════════ */
 let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
 let selectedGrammar = "random";
-let sessions = [];         // array of sentence arrays
+let sessions = [];
 let currentSession = -1;
 let sentences = [];
 let playing = false;
@@ -639,27 +638,27 @@ async function speakText(text, lang) {
   if (!playing) return;
   
   try {
-    const languageCode = lang === "hi-IN" ? "hi-IN" : "en-US";
+    const presetVoice = lang === "hi-IN" ? "Guru" : "Breeze";
     
-    const requestBody = {
-      contents: [{ 
-        parts: [{ text: text }] 
-      }]
-    };
-
-    // Add voice preset based on language
-    if (lang === "hi-IN") {
-      requestBody.voice_config = { preset_voice: "Guru" };
-    } else {
-      requestBody.voice_config = { preset_voice: "Breeze" };
-    }
-
     const res = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=" + GEMINI_KEY,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+          model: "models/gemini-3.1-flash-tts-preview",
+          contents: [{
+            parts: [{
+              text: text
+            }]
+          }],
+          generationConfig: {
+            response_mime_type: "audio/mpeg"
+          },
+          voice_config: {
+            preset_voice: presetVoice
+          }
+        })
       }
     );
 
@@ -671,7 +670,6 @@ async function speakText(text, lang) {
 
     const data = await res.json();
     
-    // Extract audio from response
     if (!data.candidates || !data.candidates[0].content.parts[0].inline_data) {
       console.warn("No audio data in response");
       return;
