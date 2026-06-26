@@ -601,22 +601,11 @@ The learner should feel like they're listening to simple conversations that chil
 Prioritize repetition over variety.
 Keep building confidence by using familiar words again and again instead of introducing new vocabulary.
 
-Return ONLY valid JSON.
+Output format:
+[{"hi":"...","en":"..."},{"hi":"...","en":"..."}]
 
-Format:
-
-[
-{
-"hi": "Hindi sentence",
-"en": "Natural spoken American English"
-}
-]
-
-No markdown.
-No explanations.
-No headings.
-No extra text;
-
+Return ONLY valid JSON. No explanations, no headings, no markdown, no extra text.`;
+  
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(
