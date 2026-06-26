@@ -638,7 +638,7 @@ async function speakText(text, lang) {
   if (!playing) return;
   
   try {
-    const presetVoice = lang === "hi-IN" ? "Guru" : "Breeze";
+    const voicePreset = lang === "hi-IN" ? "Guru" : "Breeze";
     
     const res = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent?key=" + GEMINI_KEY,
@@ -646,17 +646,18 @@ async function speakText(text, lang) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "models/gemini-3.1-flash-tts-preview",
           contents: [{
             parts: [{
               text: text
             }]
           }],
           generationConfig: {
-            response_mime_type: "audio/mpeg"
-          },
-          voice_config: {
-            preset_voice: presetVoice
+            responseMimeType: "audio/mpeg",
+            audioConfig: {
+              voiceConfig: {
+                presetVoice: voicePreset
+              }
+            }
           }
         })
       }
@@ -670,13 +671,13 @@ async function speakText(text, lang) {
 
     const data = await res.json();
     
-    if (!data.candidates || !data.candidates[0].content.parts[0].inline_data) {
+    if (!data.candidates || !data.candidates[0].content.parts[0].inlineData) {
       console.warn("No audio data in response");
       return;
     }
 
-    const audioData = data.candidates[0].content.parts[0].inline_data.data;
-    const mimeType = data.candidates[0].content.parts[0].inline_data.mime_type || "audio/mpeg";
+    const audioData = data.candidates[0].content.parts[0].inlineData.data;
+    const mimeType = data.candidates[0].content.parts[0].inlineData.mimeType || "audio/mpeg";
     
     const binaryString = atob(audioData);
     const bytes = new Uint8Array(binaryString.length);
