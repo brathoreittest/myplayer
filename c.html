@@ -520,18 +520,15 @@ async function generateAndPlay() {
     ? pickRandom(grammarPool)
     : selectedGrammar;
 
-  const topicLine = `The paragraph should be about the theme: "${topic}".`;
+  const topicLine = `The paragraph should be about the topic: "${topic}".`;
 
-  const prompt = `Write a simple Hindi paragraph (150–220 words) in very easy, everyday spoken Hindi.
-${topicLine}
-The paragraph should naturally focus on this part of speech: ${grammar}. Naturally include many examples of it.
-Keep the language natural and conversational, not formal or bookish.
+  const prompt = `Write 15 sentences, ${topicLine}. Keep the language natural and conversational, not formal or bookish.
 
 CRITICAL RULES:
 - Absolutely no markdown. No asterisks (*), no bold (**word**), no underscores, no special symbols. Plain text only.
 - Hindi sentences: clean Devanagari script, normal punctuation only (। or . or ? or !).
 - English translation: write it the way a native English speaker would naturally say it — idiomatic and fluent, never word-for-word literal.
-- each sentence should not be longer than 15 words. 
+- each sentence should not be longer than 12 words. 
 
 Break into small natural sentences. Return a JSON array where each item has:
 'hi': the Hindi sentence (plain text, zero markdown)
