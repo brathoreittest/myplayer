@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SubTrainer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+Devanagari:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0f;
+  --surface:#13131a;
+  --surface2:#1c1c28;
+  --border:#2a2a3d;
+  --accent:#ff3c5f;
+  --accent2:#7c5cff;
+  --text:#f0f0f8;
+  --muted:#6b6b8a;
+  --radius:14px;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  overflow-x:hidden;
+  overscroll-behavior:none;
+}
+
+/* ── HEADER ── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 16px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+  position:sticky;top:0;z-index:50;
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.status-pill{
+  font-size:11px;font-weight:600;letter-spacing:.4px;
+  padding:5px 11px;border-radius:20px;
+  background:var(--surface2);color:var(--muted);
+  border:1px solid var(--border);
+  max-width:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* ── SCROLL BODY ── */
+.scroll-body{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:14px 14px calc(240px + var(--safe-bottom));
+}
+
+/* ── CARD ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:12px;
+}
+.card-label{
+  font-size:10px;font-weight:600;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* ── INPUT ROW ── */
+.input-row{display:flex;gap:8px;align-items:center;}
+input[type=password]{
+  flex:1;padding:13px 14px;font-size:15px;
+  border:1px solid var(--border);border-radius:10px;
+  background:var(--surface2);color:var(--text);
+  font-family:inherit;outline:none;
+  -webkit-appearance:none;appearance:none;
+}
+input[type=password]:focus{border-color:var(--accent2);}
+
+.icon-btn{
+  width:50px;height:50px;border:none;border-radius:10px;
+  background:var(--accent2);color:#fff;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+}
+.icon-btn:active{opacity:.8;}
+
+/* ── SESSION STRIP ── */
+.session-wrap{overflow:hidden;}
+.session-strip{
+  display:flex;gap:7px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  padding:2px 0 4px;scrollbar-width:none;
+}
+.session-strip::-webkit-scrollbar{display:none;}
+.s-btn{
+  flex:0 0 auto;min-width:46px;height:38px;
+  border:1px solid var(--border);border-radius:8px;
+  background:var(--surface2);color:var(--muted);
+  font-size:13px;font-weight:600;cursor:pointer;
+}
+.s-btn.done{background:#152015;border-color:#2a452a;color:#5a9a5a;}
+.s-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.s-btn:active{opacity:.7;}
+
+/* ── BOTTOM BAR ── */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  padding-bottom:var(--safe-bottom);
+}
+
+/* Progress */
+.progress-bar{height:3px;background:var(--surface2);}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .5s ease;width:0%;
+}
+
+/* Subtitle */
+.sub-area{
+  padding:14px 18px 10px;
+  min-height:106px;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  text-align:center;
+}
+.sub-hi{
+  font-family:'Noto Sans Devanagari',sans-serif;
+  font-size:23px;font-weight:600;line-height:1.5;
+  color:#fff;opacity:0;transition:opacity .35s ease;min-height:34px;
+}
+.sub-en{
+  font-size:15px;line-height:1.5;
+  color:#9090b8;margin-top:6px;
+  opacity:0;transition:opacity .35s ease;min-height:22px;
+}
+.sub-hi.show,.sub-en.show{opacity:1;}
+
+/* Controls */
+.ctrl-row{
+  display:flex;align-items:center;gap:9px;
+  padding:10px 14px 12px;
+}
+.nav-btn{
+  width:52px;height:52px;
+  border:1px solid var(--border);border-radius:13px;
+  background:var(--surface2);color:var(--text);
+  font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nav-btn:active{background:var(--border);}
+
+.play-btn{
+  flex:1;height:52px;border:none;border-radius:13px;
+  background:linear-gradient(135deg,var(--accent) 0%,#c0003a 100%);
+  color:#fff;font-family:'Bebas Neue',sans-serif;
+  font-size:23px;letter-spacing:2.5px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 22px rgba(255,60,95,.28);
+  transition:opacity .15s;
+}
+.play-btn:active{opacity:.82;}
+.play-btn.paused{
+  background:linear-gradient(135deg,var(--accent2) 0%,#4a2acc 100%);
+  box-shadow:0 4px 22px rgba(124,92,255,.28);
+}
+
+/* ── LOADING OVERLAY ── */
+.loading{
+  display:none;position:fixed;inset:0;z-index:200;
+  background:rgba(10,10,15,.88);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.loading.show{display:flex;}
+.spinner{
+  width:46px;height:46px;border-radius:50%;
+  border:3px solid var(--border);border-top-color:var(--accent);
+  animation:spin .75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg{font-size:15px;color:var(--muted);letter-spacing:.3px;}
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loadingText">Processing…</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">SubTrainer</div>
+  <div class="status-pill" id="statusPill">Ready</div>
+</div>
+
+<!-- SCROLLABLE AREA -->
+<div class="scroll-body">
+
+  <!-- API KEY -->
+  <div class="card">
+    <div class="card-label">Gemini API Key</div>
+    <div class="input-row">
+      <input type="password" id="apiKeyInput" placeholder="Paste your Gemini key…">
+      <button class="icon-btn" id="saveKeyBtn">💾</button>
+    </div>
+  </div>
+
+  <!-- SESSION HISTORY (hidden until first generation) -->
+  <div class="card" id="sessionCard" style="display:none">
+    <div class="card-label">Sessions &mdash; <span id="sessionInfo"></span></div>
+    <div class="session-strip" id="sessionButtons"></div>
+  </div>
+
+</div><!-- /scroll-body -->
+
+<!-- FIXED BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="sub-area">
+    <div class="sub-hi" id="hindi"></div>
+    <div class="sub-en" id="english"></div>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="nav-btn" id="prev" title="Previous session">◀</button>
+    <button class="play-btn" id="toggle">▶ &nbsp;PLAY</button>
+    <button class="nav-btn" id="next" title="Next / New session">▶▶</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════ STATE ══════════════════════════════ */
+let GEMINI_KEY = localStorage.getItem("gemini_key") || "";
+let sessions = [];         // array of sentence arrays
+let currentSession = -1;
+let sentences = [];
+let playing = false;
+let speakAborted = false;
+let voices = [];
+
+const apiInput     = document.getElementById("apiKeyInput");
+const hindiBox     = document.getElementById("hindi");
+const englishBox   = document.getElementById("english");
+const toggleBtn    = document.getElementById("toggle");
+const statusPill   = document.getElementById("statusPill");
+const loadingDiv   = document.getElementById("loading");
+const loadingTxt   = document.getElementById("loadingText");
+const progressFill = document.getElementById("progressFill");
+
+if (GEMINI_KEY) apiInput.value = GEMINI_KEY;
+
+/* ═══════════════════════════════ UTILS ══════════════════════════════ */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const setStatus = msg => { statusPill.textContent = msg; };
+const showLoading = msg => { loadingTxt.textContent = msg; loadingDiv.classList.add("show"); };
+const hideLoading = () => { loadingDiv.classList.remove("show"); };
+const setProgress = frac => { progressFill.style.width = Math.min(Math.max(frac, 0), 1) * 100 + "%"; };
+
+function fade(el, text) {
+  return new Promise(r => {
+    el.classList.remove("show");
+    setTimeout(() => { el.textContent = text; el.classList.add("show"); r(); }, 260);
+  });
+}
+
+/* ═══════════════════════════════ API KEY ════════════════════════════ */
+document.getElementById("saveKeyBtn").onclick = () => {
+  const k = apiInput.value.trim();
+  if (!k) { setStatus("Enter key!"); return; }
+  localStorage.setItem("gemini_key", k);
+  GEMINI_KEY = k;
+  setStatus("Key saved ✅");
+};
+
+/* ═══════════════════════════════ WAKE LOCK ═══════════════════════════ */
+let wakeLock = null;
+async function enableWakeLock() {
+  try {
+    if (wakeLock && !wakeLock.released) return;
+    wakeLock = await navigator.wakeLock.request('screen');
+  } catch(e) {}
+}
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    // On mobile, browser kills TTS when tab is hidden — stop gracefully
+    if (isMobile && playing) {
+      stopPlayback(); setPlayState(false); setStatus("⏸ Paused — tab hidden");
+    }
+    // On desktop (Windows/Mac), TTS keeps working in background — do nothing
+  } else {
+    if (playing) enableWakeLock();
+  }
+});
+
+/* ═══════════════════════════════ SESSION STRIP ══════════════════════ */
+function renderSessions() {
+  const card = document.getElementById("sessionCard");
+  const strip = document.getElementById("sessionButtons");
+  if (!sessions.length) { card.style.display = "none"; return; }
+  card.style.display = "block";
+  document.getElementById("sessionInfo").textContent = sessions.length + " session" + (sessions.length > 1 ? "s" : "");
+  strip.innerHTML = "";
+  sessions.forEach((_, i) => {
+    const b = document.createElement("button");
+    b.className = "s-btn" + (i === currentSession ? " active" : i < currentSession ? " done" : "");
+    b.textContent = i + 1;
+    b.onclick = () => jumpSession(i);
+    strip.appendChild(b);
+  });
+  const active = strip.querySelector(".active");
+  if (active) active.scrollIntoView({ inline: "center", block: "nearest" });
+  setProgress(currentSession / Math.max(sessions.length - 1, 1));
+}
+
+function jumpSession(i) {
+  if (i < 0 || i >= sessions.length) return;
+  stopPlayback();
+  currentSession = i;
+  sentences = sessions[i];
+  setPlayState(false);
+  renderSessions();
+  setStatus("Session " + (i + 1) + " · " + sentences.length + " lines");
+}
+
+/* ═══════════════════════════════ CONTROLS ═══════════════════════════ */
+function setPlayState(isPlaying) {
+  playing = isPlaying;
+  if (isPlaying) {
+    toggleBtn.innerHTML = "⏸ &nbsp;PAUSE";
+    toggleBtn.classList.add("paused");
+  } else {
+    toggleBtn.innerHTML = "▶ &nbsp;PLAY";
+    toggleBtn.classList.remove("paused");
+  }
+}
+
+toggleBtn.onclick = () => {
+  if (playing) {
+    stopPlayback(); setPlayState(false);
+  } else {
+    if (sentences.length) startPlayback(0);
+    else generateAndPlay();
+  }
+};
+
+document.getElementById("prev").onclick = () => {
+  if (currentSession > 0) jumpSession(currentSession - 1);
+};
+
+document.getElementById("next").onclick = () => {
+  if (currentSession < sessions.length - 1) {
+    jumpSession(currentSession + 1);
+    startPlayback(0);
+  } else {
+    // Generate a new session
+    generateAndPlay();
+  }
+};
+
+function stopPlayback() {
+  speakAborted = true; playing = false;
+  try { speechSynthesis.cancel(); } catch(e) {}
+  hideLoading();
+}
+
+/* ═══════════════════════════════ VOICES ═════════════════════════════ */
+function preloadVoices() { voices = speechSynthesis.getVoices(); }
+speechSynthesis.onvoiceschanged = () => { voices = speechSynthesis.getVoices(); };
+
+function getBestVoice(lang) {
+  if (!voices.length) voices = speechSynthesis.getVoices();
+  return voices.find(v => v.lang === lang)
+      || voices.find(v => v.lang.startsWith(lang.split("-")[0]))
+      || null;
+}
+
+/* ═══════════════════════════════ AI ════════════════════════════════ */
+async function generateAndPlay() {
+  if (!GEMINI_KEY) { alert("Enter Gemini API key first"); return; }
+
+  if (navigator.onLine === false) {
+    setStatus("❌ No internet connection");
+    return;
+  }
+
+  stopPlayback();
+  showLoading("Generating Hindi content…");
+  setStatus("Thinking…");
+
+  const prompt = `Act as an expert linguist and English coach. Give me 15 natural, everyday English sentences that help me learn intermediate, high-frequency vocabulary used by native speakers.
+
+Rules:
+- Every sentence must introduce one useful vocabulary word or natural expression that native speakers commonly use in daily conversations.
+- Use a different vocabulary word or expression in every 3 sentence. Never repeat words from previous responses.
+- Mix verbs, adjectives, nouns, phrasal verbs, idioms, collocations, and common expressions.
+- Keep the English natural and conversational, not textbook-like.
+- The Hindi sentence should express the same meaning naturally, not be a word-for-word translation.
+- Avoid obscure, literary, academic, or low-frequency words.
+- Avoid rare, literary, or outdated words.
+- Do not explain the vocabulary. I will infer the meaning from context.
+
+CRITICAL RULES:
+- Absolutely no markdown. No asterisks (*), no bold (**word**), no underscores, no special symbols. Plain text only.
+- Hindi sentences: clean Devanagari script with normal punctuation only.
+
+Return a JSON array where each item has:
+"hi": the Hindi sentence
+"en": the natural spoken English sentence
+
+Output format:
+[{"hi":"...","en":"..."}]
+
+Return ONLY valid JSON. No explanations, no headings, no markdown, no extra text.`;
+
+  let lastError = null;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout so a dead connection doesn't hang forever
+
+      let res;
+      try {
+        res = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + GEMINI_KEY,
+          { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+            signal: controller.signal }
+        );
+      } catch (fetchErr) {
+        if (fetchErr.name === "AbortError") {
+          throw new Error("Request timed out (20s) — slow/unstable connection");
+        }
+        // "Failed to fetch" lands here — almost always network/CORS, not the API itself
+        throw new Error("Network error (Failed to fetch) — check internet connection, or reload over http(s):// instead of a local file:// path");
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        throw new Error("HTTP " + res.status + " " + res.statusText + (errText ? " — " + errText.slice(0, 200) : ""));
+      }
+
+      const data = await res.json();
+      if (!data.candidates) throw new Error("No candidates: " + JSON.stringify(data));
+      let raw = data.candidates[0].content.parts[0].text;
+      raw = raw.replace(/```json|```/g, "");
+      raw = raw.substring(raw.indexOf("["), raw.lastIndexOf("]") + 1);
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed) || parsed.length < 3) throw new Error("Bad split");
+
+      // Strip residual markdown bold/italic as safety net
+      const clean = parsed.map(s => ({
+        hi: s.hi.replace(/\*{1,3}([^*]+)\*{1,3}/g,"$1").replace(/_([^_]+)_/g,"$1").trim(),
+        en: s.en.replace(/\*{1,3}([^*]+)\*{1,3}/g,"$1").replace(/_([^_]+)_/g,"$1").trim()
+      }));
+
+      // Add to sessions
+      sessions.push(clean);
+      currentSession = sessions.length - 1;
+      sentences = clean;
+
+      hideLoading();
+      setStatus("Session " + sessions.length + " · " + sentences.length + " lines");
+      renderSessions();
+      startPlayback(0);
+      return;
+    } catch(e) {
+      lastError = e;
+      console.warn("Attempt " + (attempt + 1) + " failed:", e);
+      showLoading("Retry " + (attempt + 1) + "/3…");
+      await sleep(1600);
+    }
+  }
+  hideLoading();
+  const reason = lastError ? lastError.message : "unknown error";
+  setStatus("❌ Failed: " + reason.slice(0, 60));
+  console.error("SubTrainer generation failed after 3 attempts:", lastError);
+}
+
+/* ═══════════════════════════════ PLAYBACK ═══════════════════════════ */
+async function startPlayback(startIndex) {
+  if (!sentences.length) return;
+  stopPlayback();
+  await sleep(130);
+  playing = true; speakAborted = false;
+  setPlayState(true);
+  await enableWakeLock();
+
+  for (let i = startIndex; i < sentences.length; i++) {
+    if (!playing) return;
+    setProgress(i / Math.max(sentences.length - 1, 1));
+    await showSentence(sentences[i], i);
+    if (!playing) return;
+  }
+
+  setProgress(1);
+  renderSessions();
+  // Auto-continue as long as playback wasn't manually stopped
+  if (playing) {
+    setStatus("Next session incoming…");
+    await sleep(1800);
+    if (playing) generateAndPlay();
+  } else {
+    setPlayState(false);
+    setStatus("Session " + (currentSession + 1) + " done ✅");
+  }
+}
+
+async function showSentence(s, index) {
+  await fade(hindiBox, s.hi);
+  if (!playing) return;
+  await speakText(s.hi, "hi-IN");
+  if (!playing) return;
+
+  await sleep(6000);
+  if (!playing) return;
+
+  await fade(englishBox, s.en);
+  if (!playing) return;
+  await speakText(s.en, "en-US");
+  if (!playing) return;
+
+  await sleep(2500);
+}
+
+/* ═══════════════════════════════ SPEECH (Android safe) ══════════════ */
+/*
+  FIX for Hindi cutting off on Android Chrome:
+
+  Chrome (esp. on Android) has a long-standing bug where speechSynthesis
+  silently stops speaking any single utterance once it runs past roughly
+  15 seconds — the audio just stops mid-sentence with no error/onend event
+  firing correctly. English lines were usually short/fast enough to finish
+  under that window; Hindi lines (spoken more slowly, especially at
+  rate 0.9) frequently exceeded it and got cut off.
+
+  Two changes fix this:
+  1. A keep-alive interval that calls speechSynthesis.pause() immediately
+     followed by speechSynthesis.resume() every ~4s while speaking. This
+     resets Chrome's internal timer and prevents the auto-stop bug.
+  2. A smarter, per-language watchdog timeout based on character count
+     (not word count) so Hindi — which needs more time per "word" than
+     English due to conjuncts/matras — isn't killed early by our own
+     safety timer.
+*/
+function speakText(text, lang) {
+  return new Promise(resolve => {
+    if (!playing) { resolve(); return; }
+    speechSynthesis.cancel();
+
+    setTimeout(() => {
+      if (!playing) { resolve(); return; }
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = 0.9;
+      const v = getBestVoice(lang);
+      if (v) u.voice = v;
+
+      let done = false;
+      let keepAliveTimer = null;
+      let wd = null;
+
+      const cleanup = () => {
+        if (keepAliveTimer) { clearInterval(keepAliveTimer); keepAliveTimer = null; }
+        if (wd) { clearTimeout(wd); wd = null; }
+      };
+
+      const finish = () => {
+        if (done) return;
+        done = true;
+        cleanup();
+        resolve();
+      };
+
+      // Keep-alive: pokes the speech engine every 4s so Chrome/Android
+      // doesn't silently truncate long utterances (~15s bug).
+      keepAliveTimer = setInterval(() => {
+        if (!playing) { try{ speechSynthesis.cancel(); }catch(e){} finish(); return; }
+        if (speechSynthesis.speaking) {
+          try {
+            speechSynthesis.pause();
+            speechSynthesis.resume();
+          } catch(e) {}
+        } else if (!speechSynthesis.pending) {
+          // Nothing left speaking/queued — treat as finished.
+          finish();
+        }
+      }, 4000);
+
+      // Character-based duration estimate — Hindi needs more ms/char
+      // than English at the same rate.
+      const perCharMs = lang.startsWith("hi") ? 130 : 75;
+      const estMs = Math.max(text.length * perCharMs, 3500);
+      wd = setTimeout(() => {
+        try { speechSynthesis.cancel(); } catch(e) {}
+        finish();
+      }, estMs + 4000); // generous buffer on top of the estimate
+
+      u.onend   = finish;
+      u.onerror = finish;
+      speechSynthesis.speak(u);
+    }, 160);
+  });
+}
+
+/* ═══════════════════════════════ INIT ══════════════════════════════ */
+window.onload = () => { preloadVoices(); };
+</script>
+</body>
+</html>
